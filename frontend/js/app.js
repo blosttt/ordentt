@@ -2,15 +2,15 @@ const API_URL = '/api';
 
 // Interceptor global para registrar en consola todas las llamadas a la API
 const originalFetch = window.fetch;
-window.fetch = async function(...args) {
+window.fetch = async function (...args) {
     const isApiCall = typeof args[0] === 'string' && args[0].includes('/api');
-    
+
     if (isApiCall) {
         const method = (args[1] && args[1].method) ? args[1].method : 'GET';
         console.groupCollapsed(`🌐 [API Request] ${method} ${args[0]}`);
         if (args[1] && args[1].body) {
             try { console.log('Payload:', JSON.parse(args[1].body)); }
-            catch(e) { console.log('Payload:', args[1].body); }
+            catch (e) { console.log('Payload:', args[1].body); }
         } else {
             console.log('Payload: none');
         }
@@ -19,7 +19,7 @@ window.fetch = async function(...args) {
 
     try {
         const response = await originalFetch.apply(this, args);
-        
+
         if (isApiCall) {
             const clonedResponse = response.clone();
             clonedResponse.text().then(text => {
@@ -32,7 +32,7 @@ window.fetch = async function(...args) {
                 console.groupEnd();
             }).catch(e => console.error('Error reading response clone', e));
         }
-        
+
         return response;
     } catch (error) {
         if (isApiCall) {
@@ -69,12 +69,12 @@ function verificarSesion() {
     } else {
         document.getElementById('modalLogin').style.display = 'block';
         document.getElementById('appContent').style.display = 'none';
-        
+
         document.getElementById('btnIngresar').onclick = async () => {
             const carnet = document.getElementById('loginUsuario').value;
             const clave = document.getElementById('loginClave').value;
             if (!carnet || !clave) return mostrarNotificacion('Llena ambos campos', 'warning');
-            
+
             try {
                 // Intentar login
                 let res = await fetch(`${API_URL}/usuarios/login`, {
@@ -82,9 +82,9 @@ function verificarSesion() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ carnet, password: clave })
                 });
-                
+
                 let data = await res.json();
-                
+
                 if (!res.ok) {
                     // Si falla, intentamos registrar automáticamente (usando carnet como nombre)
                     res = await fetch(`${API_URL}/usuarios/register`, {
@@ -95,7 +95,7 @@ function verificarSesion() {
                     data = await res.json();
                     if (!res.ok) return mostrarNotificacion(data.mensaje, 'error');
                 }
-                
+
                 usuarioActivo = data.usuario;
                 localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
                 iniciarAplicacion();
@@ -106,15 +106,16 @@ function verificarSesion() {
     }
 }
 
+
 function iniciarAplicacion() {
     document.getElementById('modalLogin').style.display = 'none';
     document.getElementById('appContent').style.display = 'flex';
-    
+
     const lblUsuario = document.getElementById('lblUsuarioDropdown');
     if (lblUsuario) {
         lblUsuario.textContent = usuarioActivo.nombre;
     }
-    
+
     // Actualizar el trigger del avatar con la inicial del usuario
     const avatarTrigger = document.getElementById('avatarTrigger');
     if (avatarTrigger) {
@@ -129,7 +130,7 @@ function iniciarAplicacion() {
         cargarPlantillas();
     });
     iniciarActualizacionTiempos();
-    
+
     // Default view to Home
     document.getElementById('vistaHome').style.display = 'block';
 }
@@ -204,7 +205,7 @@ function setupNavigation() {
         cargarPlantillas();
         setTimeout(() => {
             const el = document.getElementById(sectionId);
-            if(el) el.scrollIntoView({ behavior: 'smooth' });
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
         }, 100);
     };
 
@@ -250,7 +251,7 @@ function setupNavigation() {
 function setupModals() {
     const modalInsumo = document.getElementById('modalInsumo');
     const modalSolicitud = document.getElementById('modalSolicitud');
-    
+
     // Placeholder para abrir modal
     window.abrirModalAddInsumo = () => {
         cargarCatalogo();
@@ -258,15 +259,15 @@ function setupModals() {
     };
 
     document.getElementById('closeModalInsumo').onclick = () => modalInsumo.style.display = 'none';
-    
+
     document.getElementById('btnAgregarSolicitud').onclick = () => abrirModalSolicitud();
     document.getElementById('closeModalSolicitud').onclick = () => modalSolicitud.style.display = 'none';
-    
+
     window.onclick = (event) => {
         if (event.target === modalInsumo) modalInsumo.style.display = 'none';
         if (event.target === modalSolicitud) modalSolicitud.style.display = 'none';
     };
-    
+
     document.getElementById('formInsumo').onsubmit = guardarInsumo;
     document.getElementById('formSolicitud').onsubmit = guardarSolicitud;
 }
@@ -304,13 +305,13 @@ function seleccionarDelCatalogo() {
         const partes = valor.split(' - ');
         const codigo = partes[0];
         const nombre = partes.slice(1).join(' - ');
-        
+
         const existe = typeof catalogoInsumos !== 'undefined' && catalogoInsumos.find(i => i.codigo === codigo);
-        
+
         customDiv.style.display = 'block';
         inputNombre.value = nombre;
         inputCodigo.value = codigo;
-        
+
         if (existe) {
             inputNombre.readOnly = true;
             inputCodigo.readOnly = true;
@@ -349,8 +350,8 @@ function abrirModalSolicitud() {
                 const nombreUbicacion = cajaInfo ? cajaInfo.nombre : insumo.ubicacionActual.replace('_', ' ');
                 return `<option value="${insumo._id}" data-max="${insumo.cantidad}">${insumo.nombre} (${insumo.codigo}) - Cantidad: ${insumo.cantidad} - ${nombreUbicacion}</option>`
             }).join('');
-            
-        selectInsumo.onchange = function() {
+
+        selectInsumo.onchange = function () {
             const selectedOption = this.options[this.selectedIndex];
             if (selectedOption.value) {
                 const max = selectedOption.getAttribute('data-max');
@@ -368,25 +369,25 @@ function abrirModalSolicitud() {
 function setupEventListeners() {
     const btnGuardarClinica = document.getElementById('btnGuardarClinica');
     if (btnGuardarClinica) btnGuardarClinica.onclick = guardarClinica;
-    
+
     const btnAgregarDiaHorario = document.getElementById('btnAgregarDiaHorario');
     if (btnAgregarDiaHorario) btnAgregarDiaHorario.onclick = agregarHorarioTemp;
-    
+
     const btnAgregarImplemento = document.getElementById('btnAgregarImplemento');
     if (btnAgregarImplemento) btnAgregarImplemento.onclick = agregarImplementoTemp;
-    
+
     const btnAgregarInsumoHeader = document.getElementById('btnAgregarInsumoHeader');
     if (btnAgregarInsumoHeader) btnAgregarInsumoHeader.onclick = abrirModalAddInsumo;
 
     const btnAgregarCaja = document.getElementById('btnAgregarCaja');
     if (btnAgregarCaja) btnAgregarCaja.onclick = crearCaja;
-    
+
     const btnPlantillaAddImp = document.getElementById('btnPlantillaAddImp');
     if (btnPlantillaAddImp) btnPlantillaAddImp.onclick = agregarImplementoPlantilla;
-    
+
     const btnGuardarPlantilla = document.getElementById('btnGuardarPlantilla');
     if (btnGuardarPlantilla) btnGuardarPlantilla.onclick = guardarPlantilla;
-    
+
     document.getElementById('fechaInicio')?.addEventListener('change', renderizarTablaSolicitudes);
     document.getElementById('soloVigentes')?.addEventListener('change', renderizarTablaSolicitudes);
 }
@@ -400,7 +401,7 @@ async function cargarInventario() {
         const response = await fetch(`${API_URL}/insumos?usuarioId=${usuarioActivo._id}`);
         const data = await response.json();
         inventarioCompleto = data;
-        
+
         // Obtener TODOS los insumos para la vista "Mis Cosas" (Inventario Maestro)
         let todosLosInsumos = [];
         Object.keys(data).forEach(ubicacion => {
@@ -408,7 +409,7 @@ async function cargarInventario() {
                 todosLosInsumos = todosLosInsumos.concat(data[ubicacion]);
             }
         });
-        
+
         // Renderizar Inventario Maestro
         renderizarInsumos('mis_cosas', todosLosInsumos, true);
 
@@ -418,7 +419,7 @@ async function cargarInventario() {
                 renderizarInsumos(caja.slug, data[caja.slug] || [], false);
             }
         });
-        
+
         calcularTiempoPromedioCentral(data.central_esterilizacion || []);
     } catch (error) {
         console.error('Error cargando inventario:', error);
@@ -493,7 +494,7 @@ function renderizarInsumos(ubicacionDOM, insumos, esVistaMaestra = false) {
     if (!container) return;
 
     container.innerHTML = '';
-    
+
     if (insumos.length === 0) {
         container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin-top: 1rem;">Vacío</p>';
         return;
@@ -502,7 +503,7 @@ function renderizarInsumos(ubicacionDOM, insumos, esVistaMaestra = false) {
     insumos.forEach(insumo => {
         const div = document.createElement('div');
         div.className = 'insumo-item';
-        
+
         let infoExtra = '';
         if (insumo.ubicacionActual === 'central_esterilizacion' && insumo.tiempoEnCentral) {
             infoExtra = `<p style="color: #eab308; font-weight: 600; margin-top: 5px;">⏱️ ${insumo.tiempoEnCentral.texto}</p>`;
@@ -514,24 +515,24 @@ function renderizarInsumos(ubicacionDOM, insumos, esVistaMaestra = false) {
             if (insumo.ubicacionActual === 'central_esterilizacion') color = 'var(--danger)';
             else if (insumo.ubicacionActual === 'mis_cosas') color = 'var(--info)';
             else color = 'var(--success)';
-            
+
             const cajaInfo = cajasDelUsuario.find(c => c.slug === insumo.ubicacionActual);
             const nombreUbicacion = cajaInfo ? cajaInfo.nombre : insumo.ubicacionActual.replace('_', ' ').toUpperCase();
             badgeUbicacion = `<div style="margin-bottom: 5px;"><span class="badge" style="background: ${color}; color: white; font-size: 0.65rem;">📍 ${nombreUbicacion}</span></div>`;
         }
-        
+
         let optionsHtml = '';
-        
+
         // Si no está en un proceso de esterilización de la central, permitir moverlo
         if (insumo.ubicacionActual !== 'central_esterilizacion') {
             let options = '<option value="">Mover a...</option>';
-            
+
             cajasDelUsuario.forEach(caja => {
                 if (caja.slug !== insumo.ubicacionActual && caja.slug !== 'central_esterilizacion') {
                     options += `<option value="${caja.slug}">${caja.nombre}</option>`;
                 }
             });
-            
+
             optionsHtml = `
             <div class="insumo-actions">
                 <select onchange="moverInsumoDOM(this, '${insumo._id}', '${insumo.ubicacionActual}', ${insumo.cantidad})">
@@ -630,7 +631,7 @@ async function guardarSolicitud(e) {
 
     try {
         // 1. Mandar a esterilizar (divide cantidad si es necesario)
-        const estRes = await fetch(`${API_URL}/insumos/enviar-esterilizacion/${insumoId}`, { 
+        const estRes = await fetch(`${API_URL}/insumos/enviar-esterilizacion/${insumoId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cantidadMover })
@@ -640,9 +641,9 @@ async function guardarSolicitud(e) {
             throw new Error(errData.mensaje || 'Error al enviar a esterilizar');
         }
         const estData = await estRes.json();
-        
+
         const consecutivo = 'SOL-' + Date.now().toString().slice(-6);
-        
+
         // 2. Crear solicitud
         const solRes = await fetch(`${API_URL}/solicitudes`, {
             method: 'POST',
@@ -659,7 +660,7 @@ async function guardarSolicitud(e) {
                 nota
             })
         });
-        
+
         if (solRes.ok) {
             document.getElementById('modalSolicitud').style.display = 'none';
             document.getElementById('formSolicitud').reset();
@@ -699,7 +700,7 @@ function renderizarTablaSolicitudes() {
     const soloVigentes = document.getElementById('soloVigentes')?.checked;
 
     let filtradas = [...solicitudes];
-    
+
     // Filtrar para ver solo las del usuario actual (o huérfanas por reinicio de DB en memoria)
     filtradas = filtradas.filter(s => !s.usuario || s.usuario._id === usuarioActivo._id || s.usuario === usuarioActivo._id);
 
@@ -717,11 +718,11 @@ function renderizarTablaSolicitudes() {
         const fechaSol = new Date(s.fecha);
         const fechaLlegada = s.devolucionEstimada ? new Date(s.devolucionEstimada) : null;
         const fechaRec = s.fechaRecepcion ? new Date(s.fechaRecepcion) : null;
-        
+
         let llegadaHtml = '-';
         if (fechaLlegada) {
             const isLate = new Date() > fechaLlegada && s.estado !== 'ENTREGADO';
-            llegadaHtml = `<span style="color: ${isLate ? 'var(--danger)' : 'var(--primary)'}; font-weight: 600;">${fechaLlegada.toLocaleDateString()} ${fechaLlegada.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>`;
+            llegadaHtml = `<span style="color: ${isLate ? 'var(--danger)' : 'var(--primary)'}; font-weight: 600;">${fechaLlegada.toLocaleDateString()} ${fechaLlegada.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
         }
 
         return `
@@ -759,16 +760,16 @@ async function cargarCajas() {
 function renderizarDashboardCajas() {
     const grid = document.getElementById('dashboardGrid');
     if (!grid) return;
-    
+
     // Solo mostrar cajas en el dashboard que no sean "mis_cosas" (ya tiene su propia vista)
     const cajasMostrar = cajasDelUsuario.filter(c => c.slug !== 'mis_cosas');
-    
+
     grid.innerHTML = cajasMostrar.map(caja => {
         let extraHtml = '';
         if (caja.slug === 'central_esterilizacion') {
             extraHtml = `<div class="tiempo-promedio" id="tiempoPromedioCentral"></div>`;
         }
-        
+
         let icon = '📦';
         if (caja.slug === 'central_esterilizacion') icon = '🏥';
         else if (caja.slug === 'locker_universidad') icon = '📚';
@@ -790,7 +791,7 @@ function renderizarDashboardCajas() {
 function renderizarCajasConfig() {
     const container = document.getElementById('cajasListContainer');
     if (!container) return;
-    
+
     container.innerHTML = cajasDelUsuario.map(c => `
         <div style="border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: ${c.fija ? 'var(--background)' : 'white'};">
             <div>
@@ -811,7 +812,7 @@ function renderizarCajasConfig() {
 async function crearCaja() {
     const nombre = document.getElementById('nuevaCajaNombre').value;
     if (!nombre) return mostrarNotificacion('Ingresa el nombre de la caja', 'warning');
-    
+
     try {
         const res = await fetch(`${API_URL}/cajas`, {
             method: 'POST',
@@ -850,7 +851,7 @@ async function eliminarCajaDOM(id, nombre) {
 async function renombrarCaja(id, nombreActual) {
     const nuevoNombre = await customPrompt("Nuevo nombre para la caja:", nombreActual);
     if (!nuevoNombre || nuevoNombre === nombreActual) return;
-    
+
     try {
         const res = await fetch(`${API_URL}/cajas/${id}`, {
             method: 'PUT',
@@ -879,10 +880,10 @@ async function cargarClinicas() {
         ]);
         const dataClinicas = await resClinicas.json();
         const dataActiva = await resActiva.json();
-        
+
         configuracionClinicas.clinicas = dataClinicas.clinicas || [];
         configuracionClinicas.clinicaActiva = dataActiva.clinicaActiva || null;
-        
+
         renderizarClinicas();
         if (typeof renderizarHorarioPreview === 'function') {
             renderizarHorarioPreview();
@@ -904,11 +905,11 @@ function renderizarClinicas() {
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
                     ${c.diasHorarios.map(d => `${d.dia}: ${d.horaInicio} - ${d.horaFin}`).join('<br>')}
                 </div>
-                ${c.implementosRequeridos && c.implementosRequeridos.length > 0 ? 
-                    `<div style="font-size: 0.8rem; margin-top: 10px;">
+                ${c.implementosRequeridos && c.implementosRequeridos.length > 0 ?
+            `<div style="font-size: 0.8rem; margin-top: 10px;">
                         <strong>Implementos:</strong> ${c.implementosRequeridos.map(i => `${i.cantidad}x ${i.nombre}`).join(', ')}
                     </div>` : ''
-                }
+        }
             </div>
             <div style="display: flex; gap: 5px; align-items: flex-start;">
                 <button class="btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="toggleClinica('${c._id}')">${c.activa ? 'Desactivar' : 'Activar'}</button>
@@ -922,11 +923,11 @@ function renderizarClinicas() {
 function renderizarHorario() {
     const container = document.getElementById('calendarMatrix');
     if (!container) return;
-    
+
     // Obtener clínicas activas
     const clinicasActivas = configuracionClinicas.clinicas.filter(c => c.activa);
     const eventosPorDia = { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [], domingo: [] };
-    
+
     clinicasActivas.forEach(clinica => {
         clinica.diasHorarios.forEach(horario => {
             if (eventosPorDia[horario.dia]) {
@@ -958,10 +959,10 @@ function renderizarHorario() {
     const startHour = 6;
     const endHour = 22;
     const hourHeight = 60; // px
-    
+
     let timeColHtml = '<div class="calendar-time-col">';
     let bgGridHtml = '<div class="calendar-bg-grid">';
-    
+
     for (let h = startHour; h <= endHour; h++) {
         const hs = h.toString().padStart(2, '0') + ':00';
         timeColHtml += `<div class="time-slot">${hs}</div>`;
@@ -971,7 +972,7 @@ function renderizarHorario() {
     bgGridHtml += '</div>';
 
     const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
-    
+
     let daysHtml = '';
     dias.forEach(dia => {
         let eventsHtml = '';
@@ -980,17 +981,17 @@ function renderizarHorario() {
                 const parts = timeStr.split(':');
                 return parseInt(parts[0]) + (parseInt(parts[1]) / 60);
             };
-            
+
             const startT = parseTime(ev.horaInicio);
             let endT = parseTime(ev.horaFin);
-            
+
             // Limit boundaries
-            if (startT < startHour) return; 
+            if (startT < startHour) return;
             if (endT > endHour + 1) endT = endHour + 1;
-            
+
             const topPx = (startT - startHour) * hourHeight;
             const heightPx = (endT - startT) * hourHeight;
-            
+
             let listaImplementos = '';
             if (ev.implementos.length > 0) {
                 listaImplementos = '<ul class="implements">';
@@ -1001,7 +1002,7 @@ function renderizarHorario() {
                 });
                 listaImplementos += '</ul>';
             }
-            
+
             eventsHtml += `
                 <div class="calendar-event" style="top: ${topPx}px; height: ${heightPx}px;">
                     <div class="time">${ev.horaInicio} - ${ev.horaFin}</div>
@@ -1010,7 +1011,7 @@ function renderizarHorario() {
                 </div>
             `;
         });
-        
+
         daysHtml += `
             <div class="calendar-day-col">
                 <div class="day-header">${dia.charAt(0).toUpperCase() + dia.slice(1)}</div>
@@ -1033,10 +1034,10 @@ function renderizarHorario() {
 function renderizarHorarioPreview() {
     const container = document.getElementById('homeHorarioPreview');
     if (!container) return;
-    
+
     // Obtener clínicas activas
     const clinicasActivas = configuracionClinicas.clinicas.filter(c => c.activa);
-    
+
     if (clinicasActivas.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No tienes clínicas configuradas o activas.</p>';
         return;
@@ -1044,7 +1045,7 @@ function renderizarHorarioPreview() {
 
     const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
     const eventosPorDia = { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [], domingo: [] };
-    
+
     clinicasActivas.forEach(clinica => {
         clinica.diasHorarios.forEach(horario => {
             if (eventosPorDia[horario.dia]) {
@@ -1060,22 +1061,22 @@ function renderizarHorarioPreview() {
 
     let html = '';
     let hayEventos = false;
-    
+
     dias.forEach(dia => {
         if (eventosPorDia[dia].length > 0) {
             hayEventos = true;
             html += `<div style="margin-bottom: 1.5rem;">
                 <h4 style="color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; margin-bottom: 0.5rem; text-transform: capitalize;">${dia}</h4>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">`;
-                
+
             eventosPorDia[dia].sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
-            
+
             eventosPorDia[dia].forEach(ev => {
                 let implStr = '';
                 if (ev.implementos.length > 0) {
                     implStr = `<p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">${ev.implementos.length} implementos requeridos</p>`;
                 }
-                
+
                 html += `
                     <div style="background: var(--background); padding: 0.75rem; border-radius: var(--radius-md); border-left: 3px solid var(--primary);">
                         <strong style="font-size: 0.9rem;">${ev.horaInicio} - ${ev.horaFin}</strong>
@@ -1084,37 +1085,37 @@ function renderizarHorarioPreview() {
                     </div>
                 `;
             });
-            
+
             html += `</div></div>`;
         }
     });
-    
+
     if (!hayEventos) {
         html = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No hay clínicas programadas en tu horario.</p>';
     }
-    
+
     container.innerHTML = html;
 }
 
 async function toggleClinica(id) {
     try {
         const res = await fetch(`${API_URL}/configuracion/clinicas/${id}/toggle`, { method: 'PUT' });
-        if (res.ok) { 
-            mostrarNotificacion('✅ Estado actualizado', 'success'); 
-            cargarClinicas(); 
+        if (res.ok) {
+            mostrarNotificacion('✅ Estado actualizado', 'success');
+            cargarClinicas();
         } else {
             mostrarNotificacion('Error al actualizar', 'error');
         }
-    } catch (e) { 
-        mostrarNotificacion('Error de red', 'error'); 
+    } catch (e) {
+        mostrarNotificacion('Error de red', 'error');
     }
 }
 
 async function eliminarClinica(id) {
-    if(!(await customConfirm('¿Eliminar esta clínica?'))) return;
+    if (!(await customConfirm('¿Eliminar esta clínica?'))) return;
     try {
         const res = await fetch(`${API_URL}/configuracion/clinicas/${id}`, { method: 'DELETE' });
-        if(res.ok) { mostrarNotificacion('Clínica eliminada', 'success'); cargarClinicas(); }
+        if (res.ok) { mostrarNotificacion('Clínica eliminada', 'success'); cargarClinicas(); }
     } catch (e) { mostrarNotificacion('Error al eliminar', 'error'); }
 }
 
@@ -1129,12 +1130,12 @@ function renderizarHorariosTemp() {
     const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
     const generarOptions = (seleccionada) => {
         let opts = '';
-        for(let h = 6; h <= 22; h++) {
-            for(let m = 0; m < 60; m += 5) {
-                const hs = h.toString().padStart(2,'0');
-                const ms = m.toString().padStart(2,'0');
+        for (let h = 6; h <= 22; h++) {
+            for (let m = 0; m < 60; m += 5) {
+                const hs = h.toString().padStart(2, '0');
+                const ms = m.toString().padStart(2, '0');
                 const val = `${hs}:${ms}`;
-                opts += `<option value="${val}" ${val===seleccionada?'selected':''}>${val}</option>`;
+                opts += `<option value="${val}" ${val === seleccionada ? 'selected' : ''}>${val}</option>`;
             }
         }
         return opts;
@@ -1142,7 +1143,7 @@ function renderizarHorariosTemp() {
     container.innerHTML = horariosTemp.map((h, i) => `
         <div class="horario-row">
             <select class="input-select" onchange="actualizarHorarioTemp(${i}, 'dia', this.value)">
-                ${diasSemana.map(d => `<option value="${d}" ${d===h.dia?'selected':''}>${d.charAt(0).toUpperCase() + d.slice(1)}</option>`).join('')}
+                ${diasSemana.map(d => `<option value="${d}" ${d === h.dia ? 'selected' : ''}>${d.charAt(0).toUpperCase() + d.slice(1)}</option>`).join('')}
             </select>
             <select class="input-select" onchange="actualizarHorarioTemp(${i}, 'horaInicio', this.value)">${generarOptions(h.horaInicio)}</select>
             <select class="input-select" onchange="actualizarHorarioTemp(${i}, 'horaFin', this.value)">${generarOptions(h.horaFin)}</select>
@@ -1156,7 +1157,7 @@ function agregarImplementoTemp() {
     const nombre = document.getElementById('nuevoImplementoNombre').value;
     const cantidad = parseInt(document.getElementById('nuevoImplementoCant').value) || 1;
     if (!nombre) return mostrarNotificacion('Ingresa el nombre del implemento', 'warning');
-    
+
     implementosTemp.push({ nombre, cantidad });
     document.getElementById('nuevoImplementoNombre').value = '';
     document.getElementById('nuevoImplementoCant').value = 1;
@@ -1184,7 +1185,7 @@ async function guardarClinica() {
     if (!nombre || horariosTemp.length === 0) return mostrarNotificacion('Nombre y al menos un horario son requeridos', 'warning');
     try {
         const res = await fetch(`${API_URL}/configuracion/clinicas`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nombre, diasHorarios: horariosTemp, implementosRequeridos: implementosTemp })
         });
         if (res.ok) {
@@ -1202,20 +1203,20 @@ function cargarPlantillaSeleccionada() {
     const select = document.getElementById('selectPlantillaCargar');
     const plantillaId = select.value;
     if (!plantillaId) return;
-    
+
     const plantilla = plantillasDelUsuario.find(p => p._id === plantillaId);
     if (!plantilla) return;
-    
+
     document.getElementById('nuevaClinicaNombre').value = plantilla.nombre;
-    
+
     // Limpiar horarios previos
     horariosTemp = [];
     renderizarHorariosTemp();
-    
+
     // Cargar implementos de la plantilla
     implementosTemp = plantilla.implementos.map(i => ({ nombre: i.nombre, cantidad: i.cantidad }));
     renderizarImplementosTemp();
-    
+
     mostrarNotificacion(`📋 Plantilla "${plantilla.nombre}" cargada.`, 'info');
     select.value = ""; // Reset select
 }
@@ -1238,12 +1239,12 @@ async function cargarPlantillas() {
 function renderizarPlantillasConfig() {
     const container = document.getElementById('plantillasListContainer');
     if (!container) return;
-    
+
     if (plantillasDelUsuario.length === 0) {
         container.innerHTML = '<p class="text-muted">No tienes plantillas guardadas.</p>';
         return;
     }
-    
+
     container.innerHTML = plantillasDelUsuario.map(p => `
         <div style="border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: white;">
             <div>
@@ -1263,8 +1264,8 @@ function renderizarPlantillasConfig() {
 function renderizarSelectPlantillas() {
     const select = document.getElementById('selectPlantillaCargar');
     if (!select) return;
-    
-    select.innerHTML = '<option value="">Cargar desde plantilla...</option>' + 
+
+    select.innerHTML = '<option value="">Cargar desde plantilla...</option>' +
         plantillasDelUsuario.map(p => `<option value="${p._id}">${p.nombre}</option>`).join('');
 }
 
@@ -1272,7 +1273,7 @@ function agregarImplementoPlantilla() {
     const nombre = document.getElementById('plantillaImplementoNombre').value;
     const cantidad = parseInt(document.getElementById('plantillaImplementoCant').value) || 1;
     if (!nombre) return mostrarNotificacion('Ingresa el nombre del implemento', 'warning');
-    
+
     nuevaPlantillaImplementos.push({ nombre, cantidad });
     document.getElementById('plantillaImplementoNombre').value = '';
     document.getElementById('plantillaImplementoCant').value = 1;
@@ -1287,12 +1288,12 @@ function eliminarImplementoPlantilla(index) {
 function renderizarImplementosPlantilla() {
     const container = document.getElementById('plantillaImplementosList');
     if (!container) return;
-    
+
     if (nuevaPlantillaImplementos.length === 0) {
         container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">Sin implementos</p>';
         return;
     }
-    
+
     container.innerHTML = nuevaPlantillaImplementos.map((imp, i) => `
         <div style="display: flex; justify-content: space-between; align-items: center; background: var(--background); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.85rem;">
             <span>${imp.cantidad}x <strong>${imp.nombre}</strong></span>
@@ -1304,17 +1305,17 @@ function renderizarImplementosPlantilla() {
 async function guardarPlantilla() {
     const nombre = document.getElementById('nuevaPlantillaNombre').value;
     if (!nombre) return mostrarNotificacion('Ingresa el nombre de la plantilla', 'warning');
-    
+
     try {
         const url = plantillaEnEdicionId ? `${API_URL}/plantillas/${plantillaEnEdicionId}` : `${API_URL}/plantillas`;
         const method = plantillaEnEdicionId ? 'PUT' : 'POST';
-        
+
         const res = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nombre, implementos: nuevaPlantillaImplementos, usuarioId: usuarioActivo._id })
         });
-        
+
         if (res.ok) {
             document.getElementById('nuevaPlantillaNombre').value = '';
             nuevaPlantillaImplementos = [];
@@ -1334,11 +1335,11 @@ async function guardarPlantilla() {
 function editarPlantillaDOM(id) {
     const plantilla = plantillasDelUsuario.find(p => p._id === id);
     if (!plantilla) return;
-    
+
     plantillaEnEdicionId = plantilla._id;
     document.getElementById('nuevaPlantillaNombre').value = plantilla.nombre;
     nuevaPlantillaImplementos = plantilla.implementos.map(i => ({ nombre: i.nombre, cantidad: i.cantidad }));
-    
+
     document.getElementById('btnGuardarPlantilla').textContent = 'Actualizar Plantilla';
     renderizarImplementosPlantilla();
     mostrarNotificacion(`Editando plantilla: ${plantilla.nombre}`, 'info');
@@ -1431,7 +1432,7 @@ function customPrompt(mensaje, valorInicial = '') {
             cleanup();
             resolve(null);
         };
-        
+
         // Enter key support
         input.onkeydown = (e) => {
             if (e.key === 'Enter') {
