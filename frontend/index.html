@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trazabilidad Odontológica</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container" id="appContent" style="display: none;">
+        <!-- Top Header Navigation -->
+        <header class="top-header">
+            <div class="header-logo" id="btnLogoHome" style="cursor: pointer;">
+                <h2>🦷 Ordent Tracker</h2>
+            </div>
+            
+            <div class="header-actions">
+                <button id="btnAgregarInsumoHeader" class="btn-primary" style="padding: 0.4rem 1rem; margin-right: 1rem; border-radius: 20px; font-size: 0.85rem;">+ Nuevo Insumo</button>
+                
+                <div class="profile-dropdown-container">
+                    <div class="avatar-trigger" id="avatarTrigger">
+                        U
+                    </div>
+                    
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <strong id="lblUsuarioDropdown">Usuario</strong>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Dentista</span>
+                        </div>
+                        
+                        <a href="#" class="dropdown-item" id="btnMenuMisDatos">👤 Mis Datos</a>
+                        
+                        <div class="dropdown-submenu-container">
+                            <a href="#" class="dropdown-item submenu-trigger">⚙️ Configuraciones <span>▶</span></a>
+                            <div class="dropdown-submenu">
+                                <a href="#" class="dropdown-item" id="btnMenuConfPlantillas">Plantillas</a>
+                                <a href="#" class="dropdown-item" id="btnMenuConfClinicas">Crear Clínica y Horarios</a>
+                                <a href="#" class="dropdown-item" id="btnMenuConfContenedores">Contenedores</a>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="btnMenuMisCosas">🎒 Mis Cosas</a>
+                        <a href="#" class="dropdown-item" id="btnMenuDashboard">🗂️ Dashboard Insumos</a>
+                        <a href="#" class="dropdown-item" id="btnMenuHorario">📅 Calendario / Mi Horario</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item text-danger" id="btnLogoutDropdown">🚪 Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="mainContent">
+            
+            <!-- VISTA HOME (Main Page) -->
+            <div id="vistaHome" class="view-section" style="display: none;">
+                <div class="view-header" style="text-align: center; margin-bottom: 2rem;">
+                    <h2 style="font-size: 2rem;">Bienvenido a Ordent</h2>
+                    <p style="font-size: 1.1rem;">Tu centro de control y trazabilidad odontológica.</p>
+                </div>
+                
+                <div class="home-split-layout">
+                    <!-- Mitad 1: Accesos Rápidos -->
+                    <div class="home-half-section">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.25rem;">⚡ Accesos Rápidos</h3>
+                        <div class="home-quick-grid">
+                            <div class="home-card" id="cardHomeMisCosas">
+                                <div class="home-card-icon">🎒</div>
+                                <h3>Mis Cosas</h3>
+                                <p>Gestiona tu inventario base, agrega y edita instrumentos.</p>
+                            </div>
+                            <div class="home-card" id="cardHomeDashboard">
+                                <div class="home-card-icon">🗂️</div>
+                                <h3>Dashboard Insumos</h3>
+                                <p>Rastrea la ubicación de tus insumos en tiempo real por contenedores.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mitad 2: Horario Preview -->
+                    <div class="home-half-section">
+                        <div class="flex-between" style="margin-bottom: 1rem;">
+                            <h3 style="color: var(--text-main); font-size: 1.25rem;">📅 Mi Horario</h3>
+                            <button id="btnHomeToHorario" class="btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Ir a Detalles / Editar</button>
+                        </div>
+                        <div id="homeHorarioPreview" class="home-horario-preview">
+                            <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Cargando horario...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VISTA PERFIL -->
+            <div id="vistaPerfil" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>👤 Mi Perfil</h2>
+                    <p>Información de tu cuenta y sesión activa.</p>
+                </div>
+                <div class="card" style="padding: 2rem; max-width: 600px; display: flex; gap: 2rem; align-items: center;">
+                    <div style="width: 100px; height: 100px; background-color: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold;" id="avatarPerfil">
+                        U
+                    </div>
+                    <div>
+                        <h3 id="nombrePerfil" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Cargando...</h3>
+                        <p id="carnetPerfil" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1rem;">Cargando...</p>
+                        <span class="badge badge-success">Cuenta Activa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA MIS COSAS -->
+            <div id="vistaMisCosas" class="view-section">
+                <div class="view-header flex-between">
+                    <div>
+                        <h2>🎒 Mis Cosas</h2>
+                        <p>Tu inventario personal de instrumentación odontológica.</p>
+                    </div>
+                </div>
+                <div class="card" style="padding: 1.5rem; background: white; min-height: 400px;">
+                    <div class="insumos-container" id="mis_cosas" style="background: transparent; padding: 0;"></div>
+                </div>
+            </div>
+
+            <!-- VISTA HORARIO -->
+            <div id="vistaHorario" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>📅 Mi Horario (Calendario Clínicas)</h2>
+                    <p>Visualiza tus clínicas y los implementos requeridos por día.</p>
+                </div>
+                <div class="calendar-wrapper" id="calendarMatrix">
+                    <!-- Grid Matricial cargado dinámicamente -->
+                </div>
+            </div>
+
+            <!-- VISTA CONFIGURACION -->
+            <div id="vistaConfig" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>Configuración</h2>
+                    <p>Administra clínicas y contenedores (cajas).</p>
+                </div>
+                
+                <h3 id="secContenedores" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Cajas / Contenedores</h3>
+                <div class="config-grid" style="margin-bottom: 2rem;">
+                    <div class="config-card">
+                        <h3>Gestión de Cajas</h3>
+                        <div id="cajasListContainer" class="clinicas-list" style="margin-bottom: 1rem;"></div>
+                    </div>
+                    <div class="config-card">
+                        <h3>➕ Agregar Nueva Caja</h3>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="nuevaCajaNombre" placeholder="Nombre de la caja (ej: Cajón Ortodoncia)" class="input-text">
+                            <button id="btnAgregarCaja" class="btn-primary">Crear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 id="secPlantillas" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Plantillas de Clínicas</h3>
+                <div class="config-grid" style="margin-bottom: 2rem;">
+                    <div class="config-card">
+                        <h3>Gestión de Plantillas</h3>
+                        <div id="plantillasListContainer" class="clinicas-list" style="margin-bottom: 1rem;"></div>
+                    </div>
+                    <div class="config-card">
+                        <h3>➕ Crear/Editar Plantilla</h3>
+                        <input type="text" id="nuevaPlantillaNombre" placeholder="Nombre de la plantilla (ej: Operatoria)" class="input-text">
+                        
+                        <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Implementos de la Plantilla</h4>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" id="plantillaImplementoNombre" placeholder="Ej: Espejo Bucal" class="input-text" style="flex: 2;">
+                            <input type="number" id="plantillaImplementoCant" value="1" min="1" class="input-text" style="flex: 1;">
+                            <button id="btnPlantillaAddImp" class="btn-outline">Agregar</button>
+                        </div>
+                        <div id="plantillaImplementosList" style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+                        
+                        <button id="btnGuardarPlantilla" class="btn-primary" style="width: 100%;">Guardar Plantilla</button>
+                    </div>
+                </div>
+
+                <h3 id="secClinicas" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Clínicas y Horarios</h3>
+                <div class="config-grid">
+                    <div class="config-card clinica-activa-card" style="display: none;">
+                        <!-- Oculto porque ahora todas las clínicas se combinan automáticamente -->
+                    </div>
+
+                    <div class="config-card clinicas-list-card">
+                        <h3>Clínicas Registradas</h3>
+                        <div id="clinicasContainer" class="clinicas-list"></div>
+                    </div>
+
+                    <div class="config-card agregar-clinica-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin: 0;">➕ Agregar Nueva Clínica</h3>
+                            <select id="selectPlantillaCargar" class="input-select" style="width: auto; font-size: 0.8rem; padding: 0.3rem;" onchange="cargarPlantillaSeleccionada()">
+                                <option value="">Cargar desde plantilla...</option>
+                            </select>
+                        </div>
+                        <input type="text" id="nuevaClinicaNombre" placeholder="Nombre de la clínica (ej: Clínica Odontológica UVG)" class="input-text">
+                        
+                        <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Horarios</h4>
+                        <div id="nuevaClinicaHorarios" class="horarios-list"></div>
+                        <button id="btnAgregarDiaHorario" class="btn-outline">+ Agregar día con horario</button>
+                        
+                        <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Implementos Requeridos</h4>
+                        <div id="nuevaClinicaImplementos" class="implementos-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"></div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="nuevoImplementoNombre" placeholder="Nombre del implemento" class="input-text" style="flex: 2; margin: 0;">
+                            <input type="number" id="nuevoImplementoCant" value="1" min="1" class="input-text" style="flex: 1; margin: 0;">
+                            <button id="btnAgregarImplemento" class="btn-outline" style="white-space: nowrap;">+ Agregar</button>
+                        </div>
+
+                        <button id="btnGuardarClinica" class="btn-primary mt-3" style="width: 100%; margin-top: 2rem;">Guardar Clínica</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA DE CONTENEDORES -->
+            <div id="vistaContenedores" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>Dashboard de Insumos</h2>
+                    <p>Rastrea la ubicación de tu instrumental en tiempo real.</p>
+                </div>
+                <div class="dashboard-grid" id="dashboardGrid">
+                    <!-- Los contenedores se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+
+            <!-- VISTA TABLA SOLICITUDES -->
+            <div id="vistaTabla" class="view-section" style="display: none;">
+                <div class="view-header flex-between">
+                    <div>
+                        <h2>📋 Historial de Solicitudes</h2>
+                        <p>Registro de instrumentación enviada a esterilizar.</p>
+                    </div>
+                    <button id="btnAgregarSolicitud" class="btn-primary">+ Nueva Solicitud</button>
+                </div>
+                
+                <div class="filtros-card">
+                    <div class="filtro-group">
+                        <label>Fecha Solicitud:</label>
+                        <input type="date" id="fechaInicio" class="input-date">
+                    </div>
+                    <div class="filtro-group-checkbox">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="soloVigentes"> 
+                            <span>Solo vigentes (No entregados)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="tabla-responsive card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>CONSECUTIVO</th>
+                                <th>FECHA ENVÍO</th>
+                                <th>ESTADO</th>
+                                <th>INSUMO</th>
+                                <th>CANT</th>
+                                <th>LLEGADA ESTIMADA</th>
+                                <th>RECEPCIÓN</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaSolicitudesBody">
+                            <!-- Carga dinámica -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE LOGIN (Visible por defecto hasta autenticar) -->
+    <div id="modalLogin" class="modal" style="display: block; background: var(--background);">
+        <div class="modal-content" style="max-width: 400px; margin: 10% auto;">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+            </div>
+            <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <div class="form-group">
+                    <label>Usuario (Carnet)</label>
+                    <input type="text" id="loginUsuario" class="input-text" placeholder="Ej: admin o 211930012">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginClave" class="input-text" placeholder="Tu contraseña">
+                </div>
+                <button id="btnIngresar" class="btn-primary w-full mt-3">Ingresar / Registrarme</button>
+                <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Si no tienes cuenta, se creará automáticamente.</p>
+            </div>
+        </div>
+        <!-- Modal Generico para Confirmaciones -->
+        <div id="modalConfirm" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="modal-content" style="background: white; padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center;">
+                <h3 style="margin-top: 0; margin-bottom: 1rem;">Confirmación</h3>
+                <p id="modalConfirmMensaje" style="margin-bottom: 1.5rem;"></p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button id="btnConfirmCancelar" class="btn-outline" style="flex: 1;">Cancelar</button>
+                    <button id="btnConfirmAceptar" class="btn-primary" style="flex: 1;">Aceptar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Generico para Prompts -->
+        <div id="modalPrompt" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="modal-content" style="background: white; padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center;">
+                <h3 style="margin-top: 0; margin-bottom: 1rem;">Ingreso de Datos</h3>
+                <p id="modalPromptMensaje" style="margin-bottom: 1rem;"></p>
+                <input type="text" id="modalPromptInput" class="input-text" style="margin-bottom: 1.5rem; text-align: center;">
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button id="btnPromptCancelar" class="btn-outline" style="flex: 1;">Cancelar</button>
+                    <button id="btnPromptAceptar" class="btn-primary" style="flex: 1;">Aceptar</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODALS -->
+    <!-- Modal Insumo -->
+    <div id="modalInsumo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nuevo Insumo (Mis Cosas)</h2>
+                <button class="close-btn" id="closeModalInsumo">&times;</button>
+            </div>
+            <form id="formInsumo" class="modal-form">
+                <div class="form-group">
+                    <label>Buscar Insumo del Catálogo</label>
+                    <input list="listaCatalogo" id="catalogoInput" class="input-text" placeholder="🔍 Escribe ID o Nombre del insumo..." oninput="seleccionarDelCatalogo()" required autocomplete="off">
+                    <datalist id="listaCatalogo"></datalist>
+                </div>
+                
+                <div id="camposPersonalizados" style="display: none; border: 1px dashed var(--border); padding: 15px; margin-top: 10px; margin-bottom: 10px; border-radius: var(--radius-md); background: var(--secondary);">
+                    <div class="form-group">
+                        <label>Nombre del insumo personalizado</label>
+                        <input type="text" id="nombre" class="input-text">
+                    </div>
+                    <div class="form-group">
+                        <label>Código Interno personalizado</label>
+                        <input type="text" id="codigo" class="input-text">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción / Detalles (Opcional)</label>
+                    <textarea id="descripcion" class="input-text" rows="2" placeholder="Ej: Marca, tamaño, o si es un insumo no listado..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad (Ej: 5 espejos)</label>
+                    <input type="number" id="cantidadInsumo" class="input-text" min="1" value="1" required>
+                </div>
+                <button type="submit" class="btn-primary w-full mt-3">Guardar Insumo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Solicitud -->
+    <div id="modalSolicitud" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nueva Solicitud a Esterilización</h2>
+                <button class="close-btn" id="closeModalSolicitud">&times;</button>
+            </div>
+            <form id="formSolicitud" class="modal-form">
+                <div class="form-group">
+                    <label>Insumo a Enviar</label>
+                    <select id="solicitudInsumoId" class="input-select" required>
+                        <!-- Carga dinámica -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad a Enviar</label>
+                    <input type="number" id="solicitudCantidad" class="input-text" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Nota / Observaciones (Opcional)</label>
+                    <textarea id="solicitudNota" class="input-text" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn-primary w-full">Confirmar Envío</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/catalogo.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
