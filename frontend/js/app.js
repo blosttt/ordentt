@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 // Interceptor global para registrar en consola todas las llamadas a la API
 const originalFetch = window.fetch;
