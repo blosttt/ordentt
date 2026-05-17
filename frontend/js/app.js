@@ -106,7 +106,6 @@ function verificarSesion() {
     }
 }
 
-
 function iniciarAplicacion() {
     document.getElementById('modalLogin').style.display = 'none';
     document.getElementById('appContent').style.display = 'flex';
