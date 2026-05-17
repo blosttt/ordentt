@@ -1,19 +1,16 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const connectDB = async () => {
     try {
         let uri = process.env.MONGO_URI;
 
-        // Si no se configuró un URI real en la nube, usamos una base de datos en memoria (ideal para desarrollo local)
-        if (!uri || uri.includes('127.0.0.1') || uri.includes('localhost')) {
-            console.log('🔄 Iniciando base de datos en memoria (MongoMemoryServer) para desarrollo local...');
-            const mongoServer = await MongoMemoryServer.create();
-            uri = mongoServer.getUri();
+        if (!uri) {
+            console.error('❌ Error: No se ha definido MONGO_URI en el archivo .env');
+            process.exit(1);
         }
 
         await mongoose.connect(uri);
-        console.log(`✅ MongoDB conectado exitosamente en la memoria local`);
+        console.log(`✅ MongoDB conectado exitosamente a ${uri}`);
         
         // Crear usuario administrador por defecto
         const Usuario = require('../models/Usuario');
