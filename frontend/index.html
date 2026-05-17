@@ -293,11 +293,12 @@
                 <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Si no tienes cuenta, se creará automáticamente.</p>
             </div>
         </div>
+    </div>
         <!-- Modal Generico para Confirmaciones -->
         <div id="modalConfirm" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-            <div class="modal-content" style="background: white; padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center;">
+            <div class="modal-content" style="background: var(--secondary); padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center; border: 1px solid var(--border);">
                 <h3 style="margin-top: 0; margin-bottom: 1rem;">Confirmación</h3>
-                <p id="modalConfirmMensaje" style="margin-bottom: 1.5rem;"></p>
+                <p id="modalConfirmMensaje" style="margin-bottom: 1.5rem; color: var(--text-muted);"></p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
                     <button id="btnConfirmCancelar" class="btn-outline" style="flex: 1;">Cancelar</button>
                     <button id="btnConfirmAceptar" class="btn-primary" style="flex: 1;">Aceptar</button>
@@ -307,9 +308,9 @@
 
         <!-- Modal Generico para Prompts -->
         <div id="modalPrompt" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-            <div class="modal-content" style="background: white; padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center;">
+            <div class="modal-content" style="background: var(--secondary); padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center; border: 1px solid var(--border);">
                 <h3 style="margin-top: 0; margin-bottom: 1rem;">Ingreso de Datos</h3>
-                <p id="modalPromptMensaje" style="margin-bottom: 1rem;"></p>
+                <p id="modalPromptMensaje" style="margin-bottom: 1rem; color: var(--text-muted);"></p>
                 <input type="text" id="modalPromptInput" class="input-text" style="margin-bottom: 1.5rem; text-align: center;">
                 <div style="display: flex; gap: 1rem; justify-content: center;">
                     <button id="btnPromptCancelar" class="btn-outline" style="flex: 1;">Cancelar</button>
@@ -318,7 +319,7 @@
             </div>
         </div>
 
-    </div>
+    <!-- (End of app-container) -->
 
     <!-- MODALS -->
     <!-- Modal Insumo -->
