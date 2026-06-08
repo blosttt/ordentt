@@ -842,3 +842,212 @@ body {
     overflow-y: auto;
     max-height: 500px;
 }
+
+/* =========================================
+   Login Split Screen Layout
+========================================= */
+.login-fullscreen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    background-color: var(--background);
+}
+
+.login-split-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100vw;
+    height: 100vh;
+}
+
+.login-left-panel {
+    background-color: #030712;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    color: var(--text-main);
+}
+
+.login-logo-container {
+    z-index: 10;
+    position: relative;
+}
+
+.login-logo-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 0;
+}
+
+.login-branding-content {
+    z-index: 10;
+    position: relative;
+    max-width: 85%;
+}
+
+.login-branding-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+}
+
+.login-branding-subtitle {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.login-footer {
+    z-index: 10;
+    position: relative;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Decoraciones Cyberpunk (Glow Orbs) */
+.glow-circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: 1;
+    opacity: 0.4;
+}
+
+.circle-1 {
+    width: 600px;
+    height: 600px;
+    background: var(--primary);
+    top: -200px;
+    left: -200px;
+}
+
+.circle-2 {
+    width: 500px;
+    height: 500px;
+    background: var(--accent);
+    bottom: -100px;
+    right: -100px;
+}
+
+.login-right-panel {
+    background-color: var(--secondary);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-form-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.login-form-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.login-input {
+    background-color: var(--background);
+    padding: 0.9rem 1.25rem;
+    font-size: 1rem;
+    border-color: var(--border);
+}
+
+.login-btn {
+    padding: 1rem;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+.login-forgot-link {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.login-forgot-link:hover {
+    color: var(--primary);
+}
+
+.login-register-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+.login-register-text a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.demo-logins-section {
+    margin-top: 2.5rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 2rem;
+}
+
+.demo-logins-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+.demo-buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.demo-btn {
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    text-align: left;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.demo-btn:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-neon);
+    transform: translateX(5px);
+}
+
+/* Responsividad para Login */
+@media (max-width: 1024px) {
+    .login-split-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .login-left-panel {
+        display: none;
+    }
+    
+    .login-right-panel {
+        padding: 2rem;
+    }
+}
