@@ -109,6 +109,10 @@ function verificarSesion() {
 function iniciarAplicacion() {
     document.getElementById('modalLogin').style.display = 'none';
     document.getElementById('appContent').style.display = 'flex';
+    
+    if (usuarioActivo.rol === 'admin') {
+        document.getElementById('btnMenuAdminPanel').style.display = 'block';
+    }
 
     const lblUsuario = document.getElementById('lblUsuarioDropdown');
     if (lblUsuario) {
@@ -150,6 +154,7 @@ function setupNavigation() {
     const vistaHorario = document.getElementById('vistaHorario');
     const vistaConfig = document.getElementById('vistaConfig');
     const vistaPerfil = document.getElementById('vistaPerfil');
+    const vistaAdmin = document.getElementById('vistaAdmin');
 
     function hideAll() {
         vistaHome.style.display = 'none';
@@ -159,6 +164,7 @@ function setupNavigation() {
         vistaHorario.style.display = 'none';
         vistaConfig.style.display = 'none';
         vistaPerfil.style.display = 'none';
+        vistaAdmin.style.display = 'none';
     }
 
     // --- Header Logo ---
@@ -211,6 +217,16 @@ function setupNavigation() {
     document.getElementById('btnMenuConfPlantillas').onclick = (e) => { e.preventDefault(); openConfigAndScroll('secPlantillas'); };
     document.getElementById('btnMenuConfClinicas').onclick = (e) => { e.preventDefault(); openConfigAndScroll('secClinicas'); };
     document.getElementById('btnMenuConfContenedores').onclick = (e) => { e.preventDefault(); openConfigAndScroll('secContenedores'); };
+
+    const btnAdminPanel = document.getElementById('btnMenuAdminPanel');
+    if (btnAdminPanel) {
+        btnAdminPanel.onclick = (e) => {
+            e.preventDefault();
+            hideAll();
+            vistaAdmin.style.display = 'block';
+            cargarLogsAdmin();
+        };
+    }
 
     document.getElementById('btnMenuMisCosas').onclick = (e) => {
         e.preventDefault();
@@ -1439,4 +1455,43 @@ function customPrompt(mensaje, valorInicial = '') {
             }
         };
     });
+}
+
+// ==========================================
+// ADMINISTRADOR: LOGS DE AUDITORÍA
+// ==========================================
+async function cargarLogsAdmin() {
+    try {
+        const res = await fetch(`${API_URL}/logs`);
+        const logs = await res.json();
+        const tbody = document.getElementById('tablaLogsBody');
+        tbody.innerHTML = '';
+
+        if (!logs || logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay registros de actividad.</td></tr>';
+        } else {
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                const fecha = new Date(log.createdAt).toLocaleString();
+                tr.innerHTML = `
+                    <td style="color:var(--text-muted); font-size:0.85rem;">${fecha}</td>
+                    <td style="font-weight:bold; color:var(--primary);">${log.usuario}</td>
+                    <td><span class="badge" style="background:var(--secondary-hover);">${log.accion}</span></td>
+                    <td>${log.descripcion}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        document.getElementById('adminStatsLogs').textContent = logs.length;
+        
+        // Cargar stats de usuarios
+        const resUsers = await fetch(`${API_URL}/usuarios`);
+        const users = await resUsers.json();
+        document.getElementById('adminStatsUsuarios').textContent = users.length || 0;
+
+    } catch (error) {
+        console.error('Error cargando logs:', error);
+        mostrarNotificacion('No se pudieron cargar los logs', 'error');
+    }
 }

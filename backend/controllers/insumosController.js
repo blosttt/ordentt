@@ -1,5 +1,7 @@
 const Insumo = require('../models/Insumo');
 const Clinica = require('../models/Clinica');
+const Log = require('../models/Log');
+const Usuario = require('../models/Usuario');
 
 function calcularTiempoEnCentral(fechaEnvio) {
     if (!fechaEnvio) return null;
@@ -126,6 +128,14 @@ exports.crearInsumo = async (req, res) => {
         });
         
         await nuevoInsumo.save();
+        
+        const user = await Usuario.findById(usuarioId);
+        await Log.create({
+            usuario: user ? user.nombre : 'Desconocido',
+            accion: 'CREAR_INSUMO',
+            descripcion: `Creó el insumo "${nombre}" (${cantE} uds) en Mis Cosas.`
+        });
+        
         res.status(201).json({ mensaje: 'Insumo creado correctamente', insumo: nuevoInsumo });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error creando insumo', error: error.message });
@@ -196,6 +206,14 @@ exports.moverInsumo = async (req, res) => {
                 insumo.historial.push({ accion: 'División por movimiento', nota: `${cant} enviadas a ${nuevaUbicacion}` });
                 await insumo.save();
             }
+            const user = await Usuario.findById(insumo.usuarioId);
+            if(user) {
+                await Log.create({
+                    usuario: user.nombre,
+                    accion: 'MOVER_INSUMO',
+                    descripcion: `Movió ${cant} uds de "${insumo.nombre}" a ${nuevaUbicacion}`
+                });
+            }
             return res.json({ mensaje: 'Insumo movido y apilado', insumo: insumoDestino });
         }
 
@@ -204,6 +222,16 @@ exports.moverInsumo = async (req, res) => {
             insumo.ubicacionActual = nuevaUbicacion;
             insumo.historial.push({ accion: 'Movimiento completo', nota: `Movido a ${nuevaUbicacion}` });
             await insumo.save();
+            
+            const user = await Usuario.findById(insumo.usuarioId);
+            if(user) {
+                await Log.create({
+                    usuario: user.nombre,
+                    accion: 'MOVER_INSUMO',
+                    descripcion: `Movió ${cant} uds de "${insumo.nombre}" a ${nuevaUbicacion}`
+                });
+            }
+            
             return res.json({ mensaje: 'Insumo movido completamente', insumo });
         } else {
             // Dividir insumo sin apilar
@@ -222,6 +250,16 @@ exports.moverInsumo = async (req, res) => {
                 historial: [{ accion: 'Separación por movimiento', nota: `Creado a partir del original movido a ${nuevaUbicacion}` }]
             });
             await nuevoInsumo.save();
+            
+            const user = await Usuario.findById(insumo.usuarioId);
+            if(user) {
+                await Log.create({
+                    usuario: user.nombre,
+                    accion: 'MOVER_INSUMO',
+                    descripcion: `Movió ${cant} uds de "${insumo.nombre}" a ${nuevaUbicacion}`
+                });
+            }
+            
             return res.json({ mensaje: 'Insumo dividido y movido', insumo: nuevoInsumo });
         }
     } catch (error) {

@@ -43,6 +43,7 @@
                         </div>
                         
                         <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="btnMenuAdminPanel" style="display: none; color: var(--warning);">🛠️ Panel de Administrador</a>
                         <a href="#" class="dropdown-item" id="btnMenuMisCosas">🎒 Mis Cosas</a>
                         <a href="#" class="dropdown-item" id="btnMenuDashboard">🗂️ Dashboard Insumos</a>
                         <a href="#" class="dropdown-item" id="btnMenuHorario">📅 Calendario / Mi Horario</a>
@@ -108,6 +109,47 @@
                         <h3 id="nombrePerfil" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Cargando...</h3>
                         <p id="carnetPerfil" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1rem;">Cargando...</p>
                         <span class="badge badge-success">Cuenta Activa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA ADMINISTRADOR -->
+            <div id="vistaAdmin" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>🛠️ Panel de Administrador</h2>
+                    <p>Auditoría del sistema y registro de actividad de los usuarios.</p>
+                </div>
+                
+                <div class="config-grid" style="margin-bottom: 2rem;">
+                    <div class="config-card">
+                        <h3 style="color: var(--primary);">Usuarios Registrados</h3>
+                        <p id="adminStatsUsuarios" style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">...</p>
+                    </div>
+                    <div class="config-card">
+                        <h3 style="color: var(--accent);">Eventos en Log</h3>
+                        <p id="adminStatsLogs" style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">...</p>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">📜 Historial de Actividad (Logs)</h3>
+                        <button class="btn-outline" onclick="cargarLogsAdmin()" style="padding: 0.2rem 0.8rem; font-size: 0.8rem;">🔄 Actualizar</button>
+                    </div>
+                    <div class="tabla-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>FECHA / HORA</th>
+                                    <th>USUARIO</th>
+                                    <th>ACCIÓN</th>
+                                    <th>DESCRIPCIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaLogsBody">
+                                <!-- Carga dinámica -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 const Usuario = require('../models/Usuario');
+const Log = require('../models/Log');
 
 exports.login = async (req, res) => {
     try {
@@ -8,6 +9,12 @@ exports.login = async (req, res) => {
         if (!usuario) {
             return res.status(401).json({ mensaje: 'Credenciales inválidas' });
         }
+        
+        await Log.create({
+            usuario: usuario.nombre || carnet,
+            accion: 'LOGIN',
+            descripcion: `El usuario ${carnet} inició sesión en el sistema.`
+        });
         
         res.json({ mensaje: 'Login exitoso', usuario });
     } catch (error) {
@@ -25,8 +32,15 @@ exports.register = async (req, res) => {
             return res.status(400).json({ mensaje: 'El carnet ya está registrado' });
         }
         
-        const nuevoUsuario = new Usuario({ nombre, carnet, password });
+        const rol = (carnet === 'admin') ? 'admin' : 'usuario';
+        const nuevoUsuario = new Usuario({ nombre, carnet, password, rol });
         await nuevoUsuario.save();
+        
+        await Log.create({
+            usuario: nombre || carnet,
+            accion: 'REGISTRO',
+            descripcion: `Se registró un nuevo usuario: ${carnet} con rol ${rol}.`
+        });
         
         res.status(201).json({ mensaje: 'Usuario registrado', usuario: nuevoUsuario });
     } catch (error) {

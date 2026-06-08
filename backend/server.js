@@ -28,6 +28,7 @@ app.use('/api/insumos', require('./routes/insumosRoutes'));
 app.use('/api/solicitudes', require('./routes/solicitudesRoutes'));
 app.use('/api/cajas', require('./routes/cajasRoutes'));
 app.use('/api/plantillas', require('./routes/plantillasRoutes'));
+app.use('/api/logs', require('./routes/logsRoutes'));
 
 // Fallback para SPA (si fuera necesario, aquí servimos el index para rutas no encontradas)
 app.use((req, res) => {
