@@ -188,7 +188,12 @@ function iniciarAplicacion() {
     iniciarActualizacionTiempos();
 
     // Default view to Home
-    document.getElementById('vistaHome').style.display = 'block';
+    const btnMenuHome = document.getElementById('btnMenuHome');
+    if (btnMenuHome) {
+        btnMenuHome.click();
+    } else {
+        document.getElementById('vistaHome').style.display = 'block';
+    }
 }
 
 function logout() {
@@ -244,7 +249,7 @@ function setupNavigation() {
     const btnMenuHome = document.getElementById('btnMenuHome');
     if(btnMenuHome) {
         btnMenuHome.onclick = (e) => {
-            e.preventDefault();
+            if (e) e.preventDefault();
             hideAll();
             vistaHome.style.display = 'block';
             setActiveSidebarItem('btnMenuHome');
@@ -283,26 +288,29 @@ function setupNavigation() {
 
     const btnMenuMisCosas = document.getElementById('btnMenuMisCosas');
     if(btnMenuMisCosas) btnMenuMisCosas.onclick = (e) => {
-        e.preventDefault();
+        if(e) e.preventDefault();
         hideAll();
         vistaMisCosas.style.display = 'block';
         setActiveSidebarItem('btnMenuMisCosas');
+        cargarInventario();
     };
 
     const btnMenuDashboard = document.getElementById('btnMenuDashboard');
     if(btnMenuDashboard) btnMenuDashboard.onclick = (e) => {
-        e.preventDefault();
+        if(e) e.preventDefault();
         hideAll();
-        vistaTabla.style.display = 'block';
+        vistaContenedores.style.display = 'block';
         setActiveSidebarItem('btnMenuDashboard');
+        cargarInventario();
     };
 
     const btnMenuHorario = document.getElementById('btnMenuHorario');
     if(btnMenuHorario) btnMenuHorario.onclick = (e) => {
-        e.preventDefault();
+        if(e) e.preventDefault();
         hideAll();
         vistaHorario.style.display = 'block';
         setActiveSidebarItem('btnMenuHorario');
+        if (typeof renderizarHorario === 'function') renderizarHorario();
     };
 
     const openConfigAndScroll = (sectionId) => {
@@ -332,26 +340,7 @@ function setupNavigation() {
         };
     }
 
-    document.getElementById('btnMenuMisCosas').onclick = (e) => {
-        e.preventDefault();
-        hideAll();
-        vistaMisCosas.style.display = 'block';
-        cargarInventario();
-    };
-
-    document.getElementById('btnMenuDashboard').onclick = (e) => {
-        e.preventDefault();
-        hideAll();
-        vistaContenedores.style.display = 'block';
-        cargarInventario();
-    };
-
-    document.getElementById('btnMenuHorario').onclick = (e) => {
-        e.preventDefault();
-        hideAll();
-        vistaHorario.style.display = 'block';
-        renderizarHorario();
-    };
+    // (Duplicate listeners removed as they were consolidated above)
 
     document.getElementById('btnLogoutDropdown').onclick = (e) => {
         e.preventDefault();
@@ -359,9 +348,14 @@ function setupNavigation() {
     };
 
     // --- Home Cards Logic ---
-    document.getElementById('cardHomeMisCosas').onclick = () => { document.getElementById('btnMenuMisCosas').click(); };
-    document.getElementById('cardHomeDashboard').onclick = () => { document.getElementById('btnMenuDashboard').click(); };
-    document.getElementById('btnHomeToHorario').onclick = () => { document.getElementById('btnMenuHorario').click(); };
+    const cardHomeMisCosas = document.getElementById('cardHomeMisCosas');
+    if (cardHomeMisCosas) cardHomeMisCosas.onclick = () => { document.getElementById('btnMenuMisCosas').click(); };
+    
+    const cardHomeDashboard = document.getElementById('cardHomeDashboard');
+    if (cardHomeDashboard) cardHomeDashboard.onclick = () => { document.getElementById('btnMenuDashboard').click(); };
+    
+    const btnHomeToHorario = document.getElementById('btnHomeToHorario');
+    if (btnHomeToHorario) btnHomeToHorario.onclick = () => { document.getElementById('btnMenuHorario').click(); };
 }
 
 // ==========================================
