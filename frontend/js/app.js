@@ -1591,7 +1591,7 @@ async function procesarArchivoPDF(file) {
             body: formData
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.mensaje || 'Error en el servidor');
+        if (!res.ok) throw new Error((data.mensaje || 'Error en el servidor') + (data.error ? ': ' + data.error : ''));
         
         return data.insumosDetectados || [];
     } catch (error) {
