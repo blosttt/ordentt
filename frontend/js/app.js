@@ -61,6 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 // AUTENTICACIÓN Y SESIÓN
 // ==========================================
+function mostrarLogin() {
+    document.getElementById('formLoginBlock').style.display = 'block';
+    document.getElementById('formRegisterBlock').style.display = 'none';
+    document.getElementById('formRecoverBlock').style.display = 'none';
+}
+
+function mostrarRegistro() {
+    document.getElementById('formLoginBlock').style.display = 'none';
+    document.getElementById('formRegisterBlock').style.display = 'block';
+    document.getElementById('formRecoverBlock').style.display = 'none';
+}
+
+function mostrarRecuperar() {
+    document.getElementById('formLoginBlock').style.display = 'none';
+    document.getElementById('formRegisterBlock').style.display = 'none';
+    document.getElementById('formRecoverBlock').style.display = 'block';
+}
+
 function verificarSesion() {
     const sesion = localStorage.getItem('usuarioActivo');
     if (sesion) {
@@ -70,13 +88,13 @@ function verificarSesion() {
         document.getElementById('modalLogin').style.display = 'block';
         document.getElementById('appContent').style.display = 'none';
 
+        // Lógica de Login
         document.getElementById('btnIngresar').onclick = async () => {
             const carnet = document.getElementById('loginUsuario').value;
             const clave = document.getElementById('loginClave').value;
             if (!carnet || !clave) return mostrarNotificacion('Llena ambos campos', 'warning');
 
             try {
-                // Intentar login
                 let res = await fetch(`${API_URL}/usuarios/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -84,16 +102,8 @@ function verificarSesion() {
                 });
 
                 let data = await res.json();
-
                 if (!res.ok) {
-                    // Si falla, intentamos registrar automáticamente (usando carnet como nombre)
-                    res = await fetch(`${API_URL}/usuarios/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nombre: carnet, carnet, password: clave })
-                    });
-                    data = await res.json();
-                    if (!res.ok) return mostrarNotificacion(data.mensaje, 'error');
+                    return mostrarNotificacion(data.mensaje || 'Credenciales inválidas', 'error');
                 }
 
                 usuarioActivo = data.usuario;
@@ -103,6 +113,49 @@ function verificarSesion() {
                 mostrarNotificacion('Error de conexión', 'error');
             }
         };
+
+        // Lógica de Registro
+        const btnRegistrar = document.getElementById('btnRegistrar');
+        if (btnRegistrar) {
+            btnRegistrar.onclick = async () => {
+                const nombre = document.getElementById('regNombre').value;
+                const carnet = document.getElementById('regCarnet').value;
+                const clave = document.getElementById('regClave').value;
+                if (!nombre || !carnet || !clave) return mostrarNotificacion('Llena todos los campos', 'warning');
+
+                try {
+                    let res = await fetch(`${API_URL}/usuarios/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, carnet, password: clave })
+                    });
+                    let data = await res.json();
+                    
+                    if (!res.ok) return mostrarNotificacion(data.mensaje, 'error');
+
+                    // Auto login después del registro
+                    usuarioActivo = data.usuario;
+                    localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
+                    iniciarAplicacion();
+                } catch (error) {
+                    mostrarNotificacion('Error al registrarse', 'error');
+                }
+            };
+        }
+
+        // Lógica de Recuperación (Mock)
+        const btnRecuperar = document.getElementById('btnRecuperar');
+        if (btnRecuperar) {
+            btnRecuperar.onclick = () => {
+                const carnet = document.getElementById('recoverCarnet').value;
+                if (!carnet) return mostrarNotificacion('Ingresa tu carnet o ID', 'warning');
+                
+                mostrarNotificacion('Las instrucciones han sido enviadas a tu correo registrado.', 'success');
+                setTimeout(() => {
+                    mostrarLogin();
+                }, 2000);
+            };
+        }
     }
 }
 
@@ -434,6 +487,32 @@ async function cargarInventario() {
                 renderizarInsumos(caja.slug, data[caja.slug] || [], false);
             }
         });
+
+        // ==============================
+        // ACTUALIZAR STATS DEL MAINPAGE
+        // ==============================
+        let totalUnidades = 0;
+        let totalEsterilizacion = 0;
+        let totalListos = 0;
+
+        todosLosInsumos.forEach(insumo => {
+            const cant = insumo.cantidad || 1;
+            totalUnidades += cant;
+            
+            if (insumo.ubicacionActual === 'central_esterilizacion') {
+                totalEsterilizacion += cant;
+            } else if (insumo.esterilizado || insumo.ubicacionActual.includes('locker')) {
+                totalListos += cant;
+            }
+        });
+
+        const elTotales = document.getElementById('homeStatTotales');
+        const elEsteril = document.getElementById('homeStatEsteril');
+        const elListos = document.getElementById('homeStatListos');
+
+        if (elTotales) elTotales.textContent = totalUnidades;
+        if (elEsteril) elEsteril.textContent = totalEsterilizacion;
+        if (elListos) elListos.textContent = totalListos;
 
         calcularTiempoPromedioCentral(data.central_esterilizacion || []);
     } catch (error) {
