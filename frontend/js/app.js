@@ -85,7 +85,7 @@ function verificarSesion() {
         usuarioActivo = JSON.parse(sesion);
         iniciarAplicacion();
     } else {
-        document.getElementById('modalLogin').style.display = 'block';
+        document.getElementById('modalLogin').style.display = 'flex';
         document.getElementById('appContent').style.display = 'none';
 
         // Lógica de Login
