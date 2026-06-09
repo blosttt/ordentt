@@ -177,6 +177,10 @@
                         <h2>🎒 Mis Cosas</h2>
                         <p>Tu inventario personal de instrumentación odontológica.</p>
                     </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="file" id="pdfImportInput" accept="application/pdf" style="display: none;">
+                        <button class="btn-outline" onclick="document.getElementById('pdfImportInput').click()" style="padding: 0.4rem 1rem; border-color: var(--accent); color: var(--accent);">📄 Importar desde PDF</button>
+                    </div>
                 </div>
                 <div class="card" style="padding: 1.5rem; background: white; min-height: 400px;">
                     <div class="insumos-container" id="mis_cosas" style="background: transparent; padding: 0;"></div>
@@ -277,9 +281,17 @@
 
             <!-- VISTA DE CONTENEDORES -->
             <div id="vistaContenedores" class="view-section" style="display: none;">
-                <div class="view-header">
-                    <h2>Dashboard de Insumos</h2>
-                    <p>Rastrea la ubicación de tu instrumental en tiempo real.</p>
+                <div class="view-header flex-between">
+                    <div>
+                        <h2>Dashboard de Insumos</h2>
+                        <p>Rastrea la ubicación de tu instrumental en tiempo real.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="file" id="pdfSendInput" accept="application/pdf" style="display: none;">
+                        <input type="file" id="pdfReceiveInput" accept="application/pdf" style="display: none;">
+                        <button class="btn-outline" onclick="document.getElementById('pdfSendInput').click()" style="padding: 0.4rem 1rem; border-color: var(--danger); color: var(--danger);">📤 Enviar según PDF</button>
+                        <button class="btn-outline" onclick="document.getElementById('pdfReceiveInput').click()" style="padding: 0.4rem 1rem; border-color: var(--success); color: var(--success);">📥 Recibir según PDF</button>
+                    </div>
                 </div>
                 <div class="dashboard-grid" id="dashboardGrid">
                     <!-- Los contenedores se cargarán dinámicamente aquí -->

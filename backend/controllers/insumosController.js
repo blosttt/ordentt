@@ -2,6 +2,7 @@ const Insumo = require('../models/Insumo');
 const Clinica = require('../models/Clinica');
 const Log = require('../models/Log');
 const Usuario = require('../models/Usuario');
+const pdfParse = require('pdf-parse');
 
 function calcularTiempoEnCentral(fechaEnvio) {
     if (!fechaEnvio) return null;
@@ -352,5 +353,43 @@ exports.recibirEsterilizado = async (req, res) => {
         res.json({ mensaje: 'Insumo recibido correctamente', insumo });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error recibiendo insumo', error: error.message });
+    }
+};
+
+exports.parsePdf = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ mensaje: 'No se subió ningún archivo PDF' });
+        }
+
+        const dataBuffer = req.file.buffer;
+        const data = await pdfParse(dataBuffer);
+
+        const text = data.text;
+        const parsedItems = [];
+        // Regex to match "CANTIDAD CODIGO PRODUCTO" lines. 
+        // Example: 1 107 Bandeja Sola
+        // Group 1: Cantidad (\d+)
+        // Group 2: Codigo (\d+|[a-zA-Z0-9-]+) (Sometimes codes have letters, assuming numbers for now but better to be safe)
+        // Group 3: Producto (.+)
+        const regex = /^(\d+)\s+([a-zA-Z0-9-]+)\s+(.+)$/gm;
+        
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            parsedItems.push({
+                cantidad: parseInt(match[1], 10),
+                codigo: match[2],
+                producto: match[3].trim()
+            });
+        }
+
+        res.json({
+            mensaje: 'PDF procesado correctamente',
+            insumosDetectados: parsedItems,
+            rawTextPreview: text.substring(0, 500)
+        });
+    } catch (error) {
+        console.error('Error parseando PDF:', error);
+        res.status(500).json({ mensaje: 'Error al procesar el archivo PDF', error: error.message });
     }
 };

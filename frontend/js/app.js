@@ -1574,3 +1574,125 @@ async function cargarLogsAdmin() {
         mostrarNotificacion('No se pudieron cargar los logs', 'error');
     }
 }
+
+// ==========================================
+// AUTOMATIZACIÓN CON PDF
+// ==========================================
+
+async function procesarArchivoPDF(file) {
+    const formData = new FormData();
+    formData.append('pdf', file);
+
+    mostrarNotificacion('Analizando PDF, por favor espera...', 'info');
+    
+    try {
+        const res = await fetch(`${API_URL}/insumos/parse-pdf`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.mensaje || 'Error en el servidor');
+        
+        return data.insumosDetectados || [];
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+        return null;
+    }
+}
+
+// Event Listeners para inputs de PDF
+document.getElementById('pdfImportInput')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const insumosPDF = await procesarArchivoPDF(file);
+    e.target.value = ''; // reset
+
+    if (insumosPDF && insumosPDF.length > 0) {
+        const confirmar = await customConfirm(`Se encontraron ${insumosPDF.length} insumos en el PDF. ¿Deseas importarlos todos a Mis Cosas?`);
+        if (confirmar) {
+            mostrarNotificacion('Importando...', 'info');
+            // Secuencial para evitar saturar si son muchos
+            for (let item of insumosPDF) {
+                await fetch(`${API_URL}/insumos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        nombre: item.producto, 
+                        codigo: item.codigo, 
+                        tipo: 'Importado de PDF', 
+                        esterilizado: false, 
+                        cantidad: item.cantidad, 
+                        usuarioId: usuarioActivo._id 
+                    })
+                });
+            }
+            mostrarNotificacion('✅ Importación completada', 'success');
+            cargarInventario();
+        }
+    } else if (insumosPDF && insumosPDF.length === 0) {
+        mostrarNotificacion('No se detectaron insumos válidos en este PDF.', 'warning');
+    }
+});
+
+document.getElementById('pdfSendInput')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const insumosPDF = await procesarArchivoPDF(file);
+    e.target.value = '';
+
+    if (insumosPDF && insumosPDF.length > 0) {
+        const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Mandar todos los coincidentes a Esterilización?`);
+        if (confirmar) {
+            let enviados = 0;
+            // Buscar en el inventario actual
+            for (let item of insumosPDF) {
+                // Buscamos un insumo nuestro que coincida en código y no esté ya en central
+                const miInsumo = inventarioCompleto['mis_cosas']?.find(i => i.codigo === item.codigo) 
+                    || Object.values(inventarioCompleto).flat().find(i => i.codigo === item.codigo && i.ubicacionActual !== 'central_esterilizacion');
+                
+                if (miInsumo) {
+                    await fetch(`${API_URL}/insumos/enviar-esterilizacion/${miInsumo._id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cantidad: Math.min(item.cantidad, miInsumo.cantidad) })
+                    });
+                    enviados++;
+                }
+            }
+            mostrarNotificacion(`✅ ${enviados} insumos enviados a esterilización`, 'success');
+            cargarInventario();
+        }
+    }
+});
+
+document.getElementById('pdfReceiveInput')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const insumosPDF = await procesarArchivoPDF(file);
+    e.target.value = '';
+
+    if (insumosPDF && insumosPDF.length > 0) {
+        const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Recibir todos los coincidentes desde Esterilización?`);
+        if (confirmar) {
+            let recibidos = 0;
+            for (let item of insumosPDF) {
+                // Buscamos insumos que ESTÁN en central_esterilizacion con ese código
+                const enCentral = inventarioCompleto['central_esterilizacion']?.filter(i => i.codigo === item.codigo);
+                if (enCentral && enCentral.length > 0) {
+                    // Por si hay varios bloques
+                    for (let esterilizando of enCentral) {
+                        await fetch(`${API_URL}/insumos/recibir-esterilizado/${esterilizando._id}`, {
+                            method: 'PUT'
+                        });
+                        recibidos++;
+                    }
+                }
+            }
+            mostrarNotificacion(`✅ ${recibidos} registros recibidos y guardados en Locker`, 'success');
+            cargarInventario();
+        }
+    }
+});
