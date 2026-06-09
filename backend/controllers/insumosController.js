@@ -3,6 +3,7 @@ const Clinica = require('../models/Clinica');
 const Log = require('../models/Log');
 const Usuario = require('../models/Usuario');
 const pdfParse = require('pdf-parse');
+const { GoogleGenAI } = require('@google/genai');
 
 function calcularTiempoEnCentral(fechaEnvio) {
     if (!fechaEnvio) return null;
@@ -364,32 +365,60 @@ exports.parsePdf = async (req, res) => {
 
         const dataBuffer = req.file.buffer;
         const data = await pdfParse(dataBuffer);
-
         const text = data.text;
-        const parsedItems = [];
-        // Regex to match "CANTIDAD CODIGO PRODUCTO" lines. 
-        // Example: 1 107 Bandeja Sola
-        // Group 1: Cantidad (\d+)
-        // Group 2: Codigo (\d+|[a-zA-Z0-9-]+) (Sometimes codes have letters, assuming numbers for now but better to be safe)
-        // Group 3: Producto (.+)
-        const regex = /^(\d+)\s+(\S+)\s+(.+?)\s*$/gm;
+
+        // Si el usuario no ha configurado su API KEY de Gemini
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ 
+                mensaje: 'Clave de API de Gemini no configurada', 
+                error: 'Debes añadir GEMINI_API_KEY a tus variables de entorno para usar la IA.' 
+            });
+        }
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+        const prompt = `
+Analiza el siguiente texto extraído de un documento PDF de inventario médico/odontológico.
+Extrae la lista de insumos.
+Devuelve ÚNICAMENTE un arreglo en formato JSON válido donde cada objeto tenga:
+- "cantidad": número entero
+- "codigo": string (puede incluir letras y números, por ejemplo "107", "AB-12", etc.)
+- "producto": string con el nombre del producto
+
+No incluyas markdown (como \`\`\`json), ni saludos, ni ningún otro texto. Solo el arreglo JSON crudo.
+
+TEXTO:
+${text}
+`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+
+        let rawResponse = response.text;
         
-        let match;
-        while ((match = regex.exec(text)) !== null) {
-            parsedItems.push({
-                cantidad: parseInt(match[1], 10),
-                codigo: match[2],
-                producto: match[3].trim()
+        // Limpiar posible markdown o formato indeseado del modelo
+        rawResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+        let parsedItems = [];
+        try {
+            parsedItems = JSON.parse(rawResponse);
+        } catch (jsonError) {
+            console.error('Error parseando la respuesta JSON de Gemini:', rawResponse);
+            return res.status(500).json({ 
+                mensaje: 'Error procesando los datos de la IA', 
+                error: jsonError.message 
             });
         }
 
         res.json({
-            mensaje: 'PDF procesado correctamente',
+            mensaje: 'PDF procesado correctamente por Inteligencia Artificial',
             insumosDetectados: parsedItems,
             rawTextPreview: text.substring(0, 500)
         });
     } catch (error) {
-        console.error('Error parseando PDF:', error);
+        console.error('Error parseando PDF con IA:', error);
         res.status(500).json({ mensaje: 'Error al procesar el archivo PDF', error: error.message });
     }
 };
