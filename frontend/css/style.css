@@ -1,27 +1,27 @@
 :root {
-    /* Cyberpunk / Dark Mode Palette */
-    --primary: #0ea5e9; /* Neon Cyan */
-    --primary-hover: #38bdf8;
-    --secondary: #0f172a; /* Slate 900 */
-    --secondary-hover: #1e293b; /* Slate 800 */
-    --accent: #a855f7; /* Electric Purple */
-    --background: #060b13; /* Deep Space Black */
-    --sidebar-bg: #0f172a;
-    --text-main: #f8fafc; /* Bright White */
-    --text-muted: #94a3b8; /* Slate 400 */
-    --border: #1e293b; /* Slate 800 border */
+    /* Light SaaS Mode Palette (KineEstética style) */
+    --primary: #153a2d; /* Dark Green / Slate */
+    --primary-hover: #1f5041;
+    --secondary: #ffffff; /* White Cards */
+    --secondary-hover: #f9fafb;
+    --accent: #216a4f; /* Medium Green for actions */
+    --background: #f9fafb; /* Light Gray Background */
+    --sidebar-bg: #eef1f0; /* Sidebar specific background */
+    --text-main: #1f2937; /* Dark Gray for text */
+    --text-muted: #6b7280; /* Medium Gray for subtitles */
+    --border: #e5e7eb; /* Soft Gray border */
     
     /* Status Colors */
-    --success: #22c55e; /* Neon Green */
-    --warning: #eab308;
-    --danger: #ef4444;
-    --info: #0ea5e9;
+    --success: #16a34a; 
+    --warning: #ca8a04;
+    --danger: #dc2626;
+    --info: #0284c7;
 
     /* Shadow and Radius */
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    --shadow-neon: 0 0 15px rgba(14, 165, 233, 0.4);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    --shadow-neon: none; /* No neon in light mode */
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
@@ -45,8 +45,72 @@ body {
 ========================================= */
 .app-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     min-height: 100vh;
+}
+
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevents overflow */
+}
+
+/* =========================================
+   Sidebar
+========================================= */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    flex-shrink: 0;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    padding: 0 0.5rem;
+    cursor: pointer;
+}
+
+.sidebar-logo h2 {
+    color: var(--primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.sidebar-item:hover, .sidebar-item.active {
+    background-color: #ffffff;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar-item.active {
+    font-weight: 600;
 }
 
 /* =========================================
@@ -54,15 +118,14 @@ body {
 ========================================= */
 .top-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: var(--secondary);
+    background-color: var(--background);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: var(--shadow-sm);
 }
 
 .header-logo h2 {

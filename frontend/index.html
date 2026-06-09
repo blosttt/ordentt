@@ -11,101 +11,130 @@
 
 <body>
     <div class="app-container" id="appContent" style="display: none;">
-        <!-- Top Header Navigation -->
-        <header class="top-header">
-            <div class="header-logo" id="btnLogoHome" style="cursor: pointer;">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo" id="btnLogoHome">
                 <h2>🦷 Ordent Tracker</h2>
             </div>
             
-            <div class="header-actions">
-                <button id="btnAgregarInsumoHeader" class="btn-primary" style="padding: 0.4rem 1rem; margin-right: 1rem; border-radius: 20px; font-size: 0.85rem;">+ Nuevo Insumo</button>
-                
-                <div class="profile-dropdown-container">
-                    <div class="avatar-trigger" id="avatarTrigger">
-                        U
-                    </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="sidebar-item active" id="btnMenuHome">
+                    <span>🏠</span> Inicio
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuMisCosas">
+                    <span>🎒</span> Mis Cosas
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuDashboard">
+                    <span>🗂️</span> Dashboard Insumos
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuHorario">
+                    <span>📅</span> Calendario Clínicas
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuAdminPanel" style="display: none; color: var(--warning);">
+                    <span>🛠️</span> Panel de Admin
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuMisDatos" style="margin-top: 1rem;">
+                    <span>👤</span> Mis Datos
+                </a>
+            </nav>
+        </aside>
+
+        <div class="main-wrapper">
+            <!-- Top Header Navigation -->
+            <header class="top-header">
+                <div class="header-actions">
+                    <button id="btnAgregarInsumoHeader" class="btn-primary" style="padding: 0.4rem 1rem; margin-right: 1rem; border-radius: 20px; font-size: 0.85rem;">+ Nuevo Insumo</button>
                     
-                    <div class="dropdown-menu" id="profileDropdown">
-                        <div class="dropdown-header">
-                            <strong id="lblUsuarioDropdown">Usuario</strong>
-                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Dentista</span>
+                    <div class="profile-dropdown-container">
+                        <div class="avatar-trigger" id="avatarTrigger" style="background-color: #f1f5f9; color: var(--primary); border: 1px solid var(--border);">
+                            U
                         </div>
                         
-                        <a href="#" class="dropdown-item" id="btnMenuMisDatos">👤 Mis Datos</a>
-                        
-                        <div class="dropdown-submenu-container">
-                            <a href="#" class="dropdown-item submenu-trigger">⚙️ Configuraciones <span>▶</span></a>
-                            <div class="dropdown-submenu">
-                                <a href="#" class="dropdown-item" id="btnMenuConfPlantillas">Plantillas</a>
-                                <a href="#" class="dropdown-item" id="btnMenuConfClinicas">Crear Clínica y Horarios</a>
-                                <a href="#" class="dropdown-item" id="btnMenuConfContenedores">Contenedores</a>
+                        <div class="dropdown-menu" id="profileDropdown">
+                            <div class="dropdown-header">
+                                <strong id="lblUsuarioDropdown">Usuario</strong>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Dentista</span>
                             </div>
+                            
+                            <div class="dropdown-submenu-container">
+                                <a href="#" class="dropdown-item submenu-trigger">⚙️ Configuraciones <span>▶</span></a>
+                                <div class="dropdown-submenu">
+                                    <a href="#" class="dropdown-item" id="btnMenuConfPlantillas">Plantillas</a>
+                                    <a href="#" class="dropdown-item" id="btnMenuConfClinicas">Crear Clínica y Horarios</a>
+                                    <a href="#" class="dropdown-item" id="btnMenuConfContenedores">Contenedores</a>
+                                </div>
+                            </div>
+                            
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item text-danger" id="btnLogoutDropdown">🚪 Cerrar Sesión</a>
                         </div>
-                        
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item" id="btnMenuAdminPanel" style="display: none; color: var(--warning);">🛠️ Panel de Administrador</a>
-                        <a href="#" class="dropdown-item" id="btnMenuMisCosas">🎒 Mis Cosas</a>
-                        <a href="#" class="dropdown-item" id="btnMenuDashboard">🗂️ Dashboard Insumos</a>
-                        <a href="#" class="dropdown-item" id="btnMenuHorario">📅 Calendario / Mi Horario</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item text-danger" id="btnLogoutDropdown">🚪 Cerrar Sesión</a>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <!-- Main Content Area -->
-        <main class="main-content" id="mainContent">
+            <!-- Main Content Area -->
+            <main class="main-content" id="mainContent">
             
             <!-- VISTA HOME (Mainpage) -->
             <div id="vistaHome" class="view-section" style="display: none;">
-                <div class="view-header">
-                    <h2>Bienvenido a Ordent Tracker</h2>
-                    <p>Tu centro de control y trazabilidad odontológica.</p>
+                <div class="view-header" style="border-bottom: none; margin-bottom: 1.5rem;">
+                    <p style="text-transform: uppercase; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); letter-spacing: 1px;">Resumen de actividad</p>
+                    <h2 id="homeWelcomeTitle" style="font-size: 2rem; font-weight: 700; color: var(--text-main); margin-top: 0.25rem;">Buen día ✨</h2>
                 </div>
 
-                <!-- Stats de Neón -->
-                <div class="config-grid" style="margin-bottom: 2rem;">
-                    <div class="config-card" style="border-left: 4px solid var(--primary);">
-                        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Insumos Totales</h3>
-                        <p id="homeStatTotales" style="font-size: 2.5rem; font-weight: bold; color: var(--text-main); margin-top: 0.5rem; text-shadow: var(--shadow-neon);">0</p>
+                <!-- Stats Limpios (SaaS) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Insumos Totales</h3>
+                        <p id="homeStatTotales" style="font-size: 2.25rem; font-weight: 700; color: var(--text-main); margin-top: 0.5rem; line-height: 1;">0</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">En todo el inventario</p>
                     </div>
-                    <div class="config-card" style="border-left: 4px solid var(--accent);">
-                        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">En Esterilización</h3>
-                        <p id="homeStatEsteril" style="font-size: 2.5rem; font-weight: bold; color: var(--accent); margin-top: 0.5rem;">0</p>
+                    <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">En Esterilización</h3>
+                        <p id="homeStatEsteril" style="font-size: 2.25rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem; line-height: 1;">0</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Proceso actual</p>
                     </div>
-                    <div class="config-card" style="border-left: 4px solid var(--success);">
-                        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Listos / En Locker</h3>
-                        <p id="homeStatListos" style="font-size: 2.5rem; font-weight: bold; color: var(--success); margin-top: 0.5rem;">0</p>
+                    <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Listos / En Locker</h3>
+                        <p id="homeStatListos" style="font-size: 2.25rem; font-weight: 700; color: var(--success); margin-top: 0.5rem; line-height: 1;">0</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Disponibles para uso</p>
                     </div>
                 </div>
 
-                <div class="home-split-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <!-- Mitad 1: Accesos Rápidos -->
+                <div class="home-split-layout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                    <!-- Mitad 1: Panel Principal -->
                     <div class="home-half-section">
-                        <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.25rem;">⚡ Accesos Rápidos</h3>
-                        <div class="home-quick-grid" style="display: grid; gap: 1rem;">
-                            <div class="home-card" id="cardHomeMisCosas" style="background: var(--secondary); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; transition: all 0.3s;">
-                                <div class="home-card-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">🎒</div>
-                                <h3 style="color: var(--primary);">Mis Cosas</h3>
-                                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestiona tu inventario base, agrega y edita instrumentos.</p>
-                            </div>
-                            <div class="home-card" id="cardHomeDashboard" style="background: var(--secondary); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; transition: all 0.3s;">
-                                <div class="home-card-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">🗂️</div>
-                                <h3 style="color: var(--accent);">Dashboard Insumos</h3>
-                                <p style="color: var(--text-muted); font-size: 0.9rem;">Rastrea la ubicación de tus insumos en tiempo real por contenedores.</p>
+                        <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
+                            <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem; font-weight: 600;">Accesos Rápidos</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="home-card" id="cardHomeMisCosas" style="background: var(--background); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                        <div style="background: #ffffff; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); font-size: 1.2rem;">🎒</div>
+                                        <h3 style="color: var(--text-main); font-size: 1rem; margin: 0;">Mis Cosas</h3>
+                                    </div>
+                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Gestiona tu inventario base, agrega y edita.</p>
+                                </div>
+                                <div class="home-card" id="cardHomeDashboard" style="background: var(--background); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                        <div style="background: #ffffff; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); font-size: 1.2rem;">🗂️</div>
+                                        <h3 style="color: var(--text-main); font-size: 1rem; margin: 0;">Dashboard Insumos</h3>
+                                    </div>
+                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Rastrea la ubicación en tiempo real.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mitad 2: Horario Preview -->
+                    <!-- Mitad 2: Status Lateral -->
                     <div class="home-half-section">
-                        <div class="flex-between" style="margin-bottom: 1rem;">
-                            <h3 style="color: var(--text-main); font-size: 1.25rem;">📅 Mi Horario</h3>
-                            <button id="btnHomeToHorario" class="btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Ir a Detalles / Editar</button>
-                        </div>
-                        <div id="homeHorarioPreview" class="home-horario-preview" style="background: var(--secondary); border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid var(--border); min-height: 250px;">
-                            <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Cargando horario...</p>
+                        <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem; height: 100%;">
+                            <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem; font-weight: 600;">Central de Esterilización</h3>
+                            <div class="info-card" style="background-color: var(--background); border-left: 3px solid var(--primary); padding: 1rem; border-radius: var(--radius-md);">
+                                <h4 style="color: var(--text-main); font-size: 0.9rem;">Tiempo Promedio</h4>
+                                <p id="homeTiempoPromedio" style="font-size: 1.25rem; font-weight: bold; color: var(--primary); margin-top: 0.25rem;">--</p>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Calculado en base a los envíos recientes.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -433,7 +462,8 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div> <!-- Fin de main-wrapper -->
+    </div> <!-- Fin de app-container -->
         <!-- Modal Generico para Confirmaciones -->
         <div id="modalConfirm" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
             <div class="modal-content" style="background: var(--secondary); padding: 2rem; border-radius: var(--radius-md); max-width: 400px; width: 90%; margin: 15vh auto; text-align: center; border: 1px solid var(--border);">

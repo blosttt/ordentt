@@ -164,7 +164,7 @@ function iniciarAplicacion() {
     document.getElementById('appContent').style.display = 'flex';
     
     if (usuarioActivo.rol === 'admin') {
-        document.getElementById('btnMenuAdminPanel').style.display = 'block';
+        document.getElementById('btnMenuAdminPanel').style.display = 'flex';
     }
 
     const lblUsuario = document.getElementById('lblUsuarioDropdown');
@@ -208,51 +208,101 @@ function setupNavigation() {
     const vistaConfig = document.getElementById('vistaConfig');
     const vistaPerfil = document.getElementById('vistaPerfil');
     const vistaAdmin = document.getElementById('vistaAdmin');
+    const vistaAdminDashboard = document.getElementById('vistaAdminDashboard');
 
     function hideAll() {
-        vistaHome.style.display = 'none';
-        vistaMisCosas.style.display = 'none';
-        vistaContenedores.style.display = 'none';
-        vistaTabla.style.display = 'none';
-        vistaHorario.style.display = 'none';
-        vistaConfig.style.display = 'none';
-        vistaPerfil.style.display = 'none';
-        vistaAdmin.style.display = 'none';
+        if(vistaHome) vistaHome.style.display = 'none';
+        if(vistaMisCosas) vistaMisCosas.style.display = 'none';
+        if(vistaContenedores) vistaContenedores.style.display = 'none';
+        if(vistaTabla) vistaTabla.style.display = 'none';
+        if(vistaHorario) vistaHorario.style.display = 'none';
+        if(vistaConfig) vistaConfig.style.display = 'none';
+        if(vistaPerfil) vistaPerfil.style.display = 'none';
+        if(vistaAdmin) vistaAdmin.style.display = 'none';
+        if(vistaAdminDashboard) vistaAdminDashboard.style.display = 'none';
+    }
+
+    // --- Sidebar Active State Logic ---
+    function setActiveSidebarItem(id) {
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const activeItem = document.getElementById(id);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
     }
 
     // --- Header Logo ---
     document.getElementById('btnLogoHome').onclick = () => {
         hideAll();
         vistaHome.style.display = 'block';
+        setActiveSidebarItem('btnMenuHome');
     };
+
+    // --- Sidebar & Navigation Actions ---
+    const btnMenuHome = document.getElementById('btnMenuHome');
+    if(btnMenuHome) {
+        btnMenuHome.onclick = (e) => {
+            e.preventDefault();
+            hideAll();
+            vistaHome.style.display = 'block';
+            setActiveSidebarItem('btnMenuHome');
+        };
+    }
 
     // --- Dropdown Menu Logic ---
     const avatarTrigger = document.getElementById('avatarTrigger');
     const profileDropdown = document.getElementById('profileDropdown');
 
-    avatarTrigger.onclick = (e) => {
-        e.stopPropagation();
-        profileDropdown.classList.toggle('show');
-    };
+    if(avatarTrigger && profileDropdown) {
+        avatarTrigger.onclick = (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('show');
+        };
 
-    window.onclick = (e) => {
-        if (!e.target.matches('.avatar-trigger')) {
-            if (profileDropdown.classList.contains('show')) {
-                profileDropdown.classList.remove('show');
+        window.onclick = (e) => {
+            if (!e.target.matches('.avatar-trigger')) {
+                if (profileDropdown.classList.contains('show')) {
+                    profileDropdown.classList.remove('show');
+                }
             }
-        }
-    };
+        };
+    }
 
-    // --- Dropdown Navigation Actions ---
-    document.getElementById('btnMenuMisDatos').onclick = (e) => {
+    // --- Dropdown & Sidebar Shared Navigation ---
+    const btnMenuMisDatos = document.getElementById('btnMenuMisDatos');
+    if (btnMenuMisDatos) {
+        btnMenuMisDatos.onclick = (e) => {
+            e.preventDefault();
+            hideAll();
+            vistaPerfil.style.display = 'block';
+            setActiveSidebarItem('btnMenuMisDatos');
+        };
+    }
+
+    const btnMenuMisCosas = document.getElementById('btnMenuMisCosas');
+    if(btnMenuMisCosas) btnMenuMisCosas.onclick = (e) => {
         e.preventDefault();
         hideAll();
-        vistaPerfil.style.display = 'block';
-        if (usuarioActivo) {
-            document.getElementById('nombrePerfil').textContent = usuarioActivo.nombre;
-            document.getElementById('carnetPerfil').textContent = `Carnet / ID: ${usuarioActivo.carnet}`;
-            document.getElementById('avatarPerfil').textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
-        }
+        vistaMisCosas.style.display = 'block';
+        setActiveSidebarItem('btnMenuMisCosas');
+    };
+
+    const btnMenuDashboard = document.getElementById('btnMenuDashboard');
+    if(btnMenuDashboard) btnMenuDashboard.onclick = (e) => {
+        e.preventDefault();
+        hideAll();
+        vistaTabla.style.display = 'block';
+        setActiveSidebarItem('btnMenuDashboard');
+    };
+
+    const btnMenuHorario = document.getElementById('btnMenuHorario');
+    if(btnMenuHorario) btnMenuHorario.onclick = (e) => {
+        e.preventDefault();
+        hideAll();
+        vistaHorario.style.display = 'block';
+        setActiveSidebarItem('btnMenuHorario');
     };
 
     const openConfigAndScroll = (sectionId) => {
@@ -1696,3 +1746,40 @@ document.getElementById('pdfReceiveInput')?.addEventListener('change', async (e)
         }
     }
 });
+
+// ==========================================
+// ADMIN DASHBOARD
+// ==========================================
+async function cargarDatosAdminDashboard() {
+    try {
+        const res = await fetch(`${API_URL}/admin/dashboard`);
+        if (!res.ok) throw new Error('Error al obtener datos del admin');
+        const data = await res.json();
+        
+        document.getElementById('adminStatClinicas').textContent = data.totalClinicas || 0;
+        document.getElementById('adminStatInsumos').textContent = data.totalInsumos || 0;
+        document.getElementById('adminStatUsuarios').textContent = data.totalUsuarios || 0;
+
+        const tbody = document.getElementById('adminTablaClinicas');
+        if (tbody) {
+            tbody.innerHTML = '';
+            if (data.clinicas && data.clinicas.length > 0) {
+                data.clinicas.forEach(clinica => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${clinica.nombre}</strong></td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">${clinica.idInterno || clinica._id.substring(0, 8)}</td>
+                        <td>${clinica.plantillasCount || 0} plantillas</td>
+                        <td>${clinica.horariosCount || 0} turnos</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No hay clínicas registradas</td></tr>`;
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        mostrarNotificacion('No se pudieron cargar los datos del Admin Dashboard', 'error');
+    }
+}
