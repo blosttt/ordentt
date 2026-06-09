@@ -53,10 +53,48 @@ let solicitudes = [];
 let intervaloActualizacion;
 
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    setupMobileMenu();
     verificarSesion();
     setupModals();
     setupEventListeners();
 });
+
+function initTheme() {
+    const isDark = localStorage.getItem('theme') === 'dark';
+    if (isDark) document.body.classList.add('dark-mode');
+    
+    const btnToggle = document.getElementById('btnToggleTheme');
+    if (btnToggle) {
+        btnToggle.textContent = isDark ? '☀️' : '🌙';
+        btnToggle.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const darkNow = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', darkNow ? 'dark' : 'light');
+            btnToggle.textContent = darkNow ? '☀️' : '🌙';
+        };
+    }
+}
+
+function setupMobileMenu() {
+    const btnMobileMenu = document.getElementById('btnMobileMenu');
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (btnMobileMenu && sidebar) {
+        btnMobileMenu.onclick = () => {
+            sidebar.classList.toggle('mobile-open');
+        };
+
+        // Close sidebar when clicking a link (mobile only)
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+        });
+    }
+}
 
 // ==========================================
 // AUTENTICACIÓN Y SESIÓN

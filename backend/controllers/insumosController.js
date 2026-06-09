@@ -372,7 +372,7 @@ exports.parsePdf = async (req, res) => {
         // Group 1: Cantidad (\d+)
         // Group 2: Codigo (\d+|[a-zA-Z0-9-]+) (Sometimes codes have letters, assuming numbers for now but better to be safe)
         // Group 3: Producto (.+)
-        const regex = /^(\d+)\s+([a-zA-Z0-9-]+)\s+(.+)$/gm;
+        const regex = /^(\d+)\s+(\S+)\s+(.+?)\s*$/gm;
         
         let match;
         while ((match = regex.exec(text)) !== null) {
