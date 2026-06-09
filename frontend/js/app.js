@@ -328,6 +328,7 @@ function setupNavigation() {
             hideAll();
             vistaAdmin.style.display = 'block';
             cargarLogsAdmin();
+            cargarUsuariosAdmin();
         };
     }
 
@@ -508,6 +509,11 @@ function setupEventListeners() {
 
     document.getElementById('fechaInicio')?.addEventListener('change', renderizarTablaSolicitudes);
     document.getElementById('soloVigentes')?.addEventListener('change', renderizarTablaSolicitudes);
+
+    const formEditarPerfil = document.getElementById('formEditarPerfil');
+    if (formEditarPerfil) {
+        formEditarPerfil.onsubmit = guardarPerfil;
+    }
 }
 
 // ==========================================
@@ -1781,5 +1787,138 @@ async function cargarDatosAdminDashboard() {
     } catch (error) {
         console.error(error);
         mostrarNotificacion('No se pudieron cargar los datos del Admin Dashboard', 'error');
+    }
+}
+
+// ==========================================
+// PERFIL Y GESTIÓN DE USUARIOS
+// ==========================================
+function cargarPerfil() {
+    if (!usuarioActivo) return;
+    
+    document.getElementById('perfilCarnet').value = usuarioActivo.carnet;
+    document.getElementById('perfilNombre').value = usuarioActivo.nombre;
+    document.getElementById('perfilPassword').value = '';
+    
+    const titulo = document.getElementById('nombrePerfilTitle');
+    if (titulo) titulo.textContent = usuarioActivo.nombre;
+    
+    const rolBadge = document.getElementById('rolPerfilBadge');
+    if (rolBadge) {
+        rolBadge.textContent = usuarioActivo.rol === 'admin' ? 'Administrador' : 'Usuario';
+        rolBadge.className = usuarioActivo.rol === 'admin' ? 'badge badge-warning' : 'badge badge-success';
+    }
+    
+    const avatar = document.getElementById('avatarPerfil');
+    if (avatar) avatar.textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
+}
+
+async function guardarPerfil(e) {
+    e.preventDefault();
+    if (!usuarioActivo) return;
+    
+    const nombre = document.getElementById('perfilNombre').value;
+    const password = document.getElementById('perfilPassword').value;
+    
+    const payload = {};
+    if (nombre) payload.nombre = nombre;
+    if (password) payload.password = password;
+    
+    try {
+        const res = await fetch(`${API_URL}/usuarios/${usuarioActivo._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
+        
+        // Update local session
+        usuarioActivo = data.usuario;
+        localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
+        
+        cargarPerfil();
+        mostrarNotificacion('✅ Perfil actualizado correctamente', 'success');
+        
+        const lblUsuario = document.getElementById('lblUsuarioDropdown');
+        if (lblUsuario) lblUsuario.textContent = usuarioActivo.nombre;
+        const avatarTrigger = document.getElementById('avatarTrigger');
+        if (avatarTrigger) avatarTrigger.textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
+        
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function cargarUsuariosAdmin() {
+    try {
+        const res = await fetch(`${API_URL}/usuarios`);
+        if (!res.ok) throw new Error('Error al cargar usuarios');
+        
+        const usuarios = await res.json();
+        const tbody = document.getElementById('tablaUsuariosAdminBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        usuarios.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${u.carnet}</strong></td>
+                <td>${u.nombre}</td>
+                <td>
+                    <select onchange="cambiarRolUsuario('${u._id}', this.value)" class="input-select" style="padding: 0.2rem; font-size: 0.85rem; background-color: var(--background);">
+                        <option value="usuario" ${u.rol === 'usuario' ? 'selected' : ''}>Usuario</option>
+                        <option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+                    </select>
+                </td>
+                <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn-outline text-danger" onclick="eliminarUsuario('${u._id}')" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; border-color: var(--danger);" ${u.carnet === 'admin' ? 'disabled' : ''}>🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+    } catch (error) {
+        mostrarNotificacion('Error al cargar usuarios', 'error');
+    }
+}
+
+async function cambiarRolUsuario(id, nuevoRol) {
+    if (!confirm(`¿Estás seguro de cambiar el rol a ${nuevoRol}?`)) {
+        cargarUsuariosAdmin(); // reset select
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/usuarios/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rol: nuevoRol })
+        });
+        
+        if (!res.ok) throw new Error('Error al cambiar rol');
+        mostrarNotificacion('✅ Rol actualizado', 'success');
+        cargarUsuariosAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+        cargarUsuariosAdmin();
+    }
+}
+
+async function eliminarUsuario(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible.')) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/usuarios/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!res.ok) throw new Error('Error al eliminar usuario');
+        mostrarNotificacion('✅ Usuario eliminado', 'success');
+        cargarUsuariosAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
     }
 }

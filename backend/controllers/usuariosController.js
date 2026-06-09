@@ -7,7 +7,7 @@ exports.login = async (req, res) => {
         const usuario = await Usuario.findOne({ carnet, password });
         
         if (!usuario) {
-            return res.status(401).json({ mensaje: 'Credenciales inválidas' });
+            return res.status(401).json({ mensaje: 'Credenciales erróneas' });
         }
         
         await Log.create({
@@ -54,5 +54,50 @@ exports.getUsuarios = async (req, res) => {
         res.json(usuarios);
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al obtener usuarios', error: error.message });
+    }
+};
+
+exports.updateUsuario = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, password, rol } = req.body;
+        
+        const usuario = await Usuario.findById(id);
+        if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        
+        if (nombre) usuario.nombre = nombre;
+        if (password) usuario.password = password;
+        if (rol) usuario.rol = rol;
+        
+        await usuario.save();
+        
+        await Log.create({
+            usuario: usuario.nombre || usuario.carnet,
+            accion: 'ACTUALIZAR_PERFIL',
+            descripcion: `Se actualizó el perfil del usuario ${usuario.carnet}.`
+        });
+        
+        res.json({ mensaje: 'Usuario actualizado', usuario });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar usuario', error: error.message });
+    }
+};
+
+exports.deleteUsuario = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const usuario = await Usuario.findByIdAndDelete(id);
+        
+        if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        
+        await Log.create({
+            usuario: 'SISTEMA',
+            accion: 'ELIMINAR_USUARIO',
+            descripcion: `Se eliminó al usuario ${usuario.carnet}.`
+        });
+        
+        res.json({ mensaje: 'Usuario eliminado exitosamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar usuario', error: error.message });
     }
 };

@@ -146,15 +146,32 @@
                     <h2>👤 Mi Perfil</h2>
                     <p>Información de tu cuenta y sesión activa.</p>
                 </div>
-                <div class="card" style="padding: 2rem; max-width: 600px; display: flex; gap: 2rem; align-items: center;">
-                    <div style="width: 100px; height: 100px; background-color: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold;" id="avatarPerfil">
-                        U
+                <div class="card" style="padding: 2rem; max-width: 600px;">
+                    <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 2rem;">
+                        <div style="width: 80px; height: 80px; background-color: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold;" id="avatarPerfil">
+                            U
+                        </div>
+                        <div>
+                            <h3 id="nombrePerfilTitle" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Cargando...</h3>
+                            <span class="badge badge-success" id="rolPerfilBadge">Usuario</span>
+                        </div>
                     </div>
-                    <div>
-                        <h3 id="nombrePerfil" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Cargando...</h3>
-                        <p id="carnetPerfil" style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1rem;">Cargando...</p>
-                        <span class="badge badge-success">Cuenta Activa</span>
-                    </div>
+                    
+                    <form id="formEditarPerfil">
+                        <div class="form-group">
+                            <label>Carnet / ID (Restringido)</label>
+                            <input type="text" id="perfilCarnet" class="input-text" readonly style="background-color: var(--background); cursor: not-allowed; opacity: 0.8;">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre del Centro o Dentista</label>
+                            <input type="text" id="perfilNombre" class="input-text" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nueva Contraseña (Opcional)</label>
+                            <input type="password" id="perfilPassword" class="input-text" placeholder="Dejar en blanco para no cambiarla">
+                        </div>
+                        <button type="submit" class="btn-primary w-full mt-3">Guardar Cambios</button>
+                    </form>
                 </div>
             </div>
 
@@ -173,6 +190,29 @@
                     <div class="config-card">
                         <h3 style="color: var(--accent);">Eventos en Log</h3>
                         <p id="adminStatsLogs" style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">...</p>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">👥 Gestión de Usuarios</h3>
+                        <button class="btn-outline" onclick="cargarUsuariosAdmin()" style="padding: 0.2rem 0.8rem; font-size: 0.8rem;">🔄 Actualizar</button>
+                    </div>
+                    <div class="tabla-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>CARNET</th>
+                                    <th>NOMBRE</th>
+                                    <th>ROL</th>
+                                    <th>FECHA REGISTRO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaUsuariosAdminBody">
+                                <!-- Carga dinámica -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
