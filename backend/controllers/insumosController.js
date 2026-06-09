@@ -2,10 +2,7 @@ const Insumo = require('../models/Insumo');
 const Clinica = require('../models/Clinica');
 const Log = require('../models/Log');
 const Usuario = require('../models/Usuario');
-let pdfParse = require('pdf-parse');
-if (typeof pdfParse !== 'function' && typeof pdfParse.PDFParse === 'function') {
-    pdfParse = pdfParse.PDFParse;
-}
+const pdfParse = require('pdf-parse');
 
 function calcularTiempoEnCentral(fechaEnvio) {
     if (!fechaEnvio) return null;
