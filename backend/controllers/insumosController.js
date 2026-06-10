@@ -391,10 +391,33 @@ TEXTO:
 ${text}
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
+        let response;
+        let retries = 3;
+        let lastError;
+        let modelosATratar = ['gemini-1.5-flash', 'gemini-2.5-flash'];
+        let modeloExitoso = false;
+
+        for (let i = 0; i < retries; i++) {
+            try {
+                // Alternar modelos en los reintentos
+                let modeloActual = modelosATratar[i % modelosATratar.length];
+                response = await ai.models.generateContent({
+                    model: modeloActual,
+                    contents: prompt,
+                });
+                modeloExitoso = true;
+                break; // Si tiene éxito, salir del bucle
+            } catch (err) {
+                lastError = err;
+                console.warn(`Intento ${i + 1} falló con el modelo de Gemini. Reintentando en 2 segundos...`);
+                // Esperar 2 segundos antes de reintentar
+                await new Promise(res => setTimeout(res, 2000));
+            }
+        }
+
+        if (!modeloExitoso || !response) {
+            throw new Error(\`La IA está saturada en este momento. Por favor, intenta de nuevo en unos minutos. Detalles: \${lastError.message}\`);
+        }
 
         let rawResponse = response.text;
         
