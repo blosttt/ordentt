@@ -403,12 +403,6 @@ function setupModals() {
     const modalInsumo = document.getElementById('modalInsumo');
     const modalSolicitud = document.getElementById('modalSolicitud');
 
-    // Placeholder para abrir modal
-    window.abrirModalAddInsumo = () => {
-        cargarCatalogo();
-        modalInsumo.style.display = 'block';
-    };
-
     document.getElementById('closeModalInsumo').onclick = () => modalInsumo.style.display = 'none';
 
     document.getElementById('btnAgregarSolicitud').onclick = () => abrirModalSolicitud();
@@ -421,6 +415,17 @@ function setupModals() {
 
     document.getElementById('formInsumo').onsubmit = guardarInsumo;
     document.getElementById('formSolicitud').onsubmit = guardarSolicitud;
+}
+
+function abrirModalAddInsumo() {
+    console.log("Abriendo modal de nuevo insumo...");
+    cargarCatalogo();
+    const modalInsumo = document.getElementById('modalInsumo');
+    if (modalInsumo) {
+        modalInsumo.style.display = 'block';
+    } else {
+        console.error("modalInsumo no encontrado en el DOM");
+    }
 }
 
 function cargarCatalogo() {
