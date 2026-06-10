@@ -419,7 +419,7 @@ ${text}
         let usoIA = false;
 
         if (!modeloExitoso || !response) {
-            console.warn(\`Fallback a Regex debido a fallo de IA: \${lastError ? lastError.message : 'Error desconocido'}\`);
+            console.warn(`Fallback a Regex debido a fallo de IA: ${lastError ? lastError.message : 'Error desconocido'}`);
             // Fallback al parseo Regex tradicional si la IA falla
             const regex = /^(\d+)\s+(\S+)\s+(.+?)\s*$/gm;
             let match;
@@ -431,7 +431,7 @@ ${text}
                 });
             }
             if (parsedItems.length === 0) {
-                throw new Error(\`La IA está saturada (\${lastError ? lastError.message : 'Error'}) y el análisis tradicional no encontró insumos en este formato de PDF.\`);
+                throw new Error(`La IA está saturada (${lastError ? lastError.message : 'Error'}) y el análisis tradicional no encontró insumos en este formato de PDF.`);
             }
         } else {
             usoIA = true;
