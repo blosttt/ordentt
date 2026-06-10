@@ -429,15 +429,21 @@ function abrirModalAddInsumo() {
 }
 
 function cargarCatalogo() {
-    const datalist = document.getElementById('listaCatalogo');
-    if (!datalist) return;
-    if (datalist.options.length === 0 && typeof catalogoInsumos !== 'undefined') {
-        let html = '';
-        catalogoInsumos.forEach(item => {
-            html += `<option value="${item.codigo} - ${item.nombre}"></option>`;
-        });
-        html += '<option value="➕ Agregar insumo personalizado (OTRO)"></option>';
-        datalist.innerHTML = html;
+    try {
+        const datalist = document.getElementById('listaCatalogo');
+        if (!datalist) return;
+        
+        // Use children.length instead of options.length for better cross-browser compatibility with datalist
+        if (datalist.children.length === 0 && typeof catalogoInsumos !== 'undefined' && Array.isArray(catalogoInsumos)) {
+            let html = '';
+            catalogoInsumos.forEach(item => {
+                html += `<option value="${item.codigo} - ${item.nombre}"></option>`;
+            });
+            html += '<option value="➕ Agregar insumo personalizado (OTRO)"></option>';
+            datalist.innerHTML = html;
+        }
+    } catch (e) {
+        console.error("Error cargando el catálogo:", e);
     }
 }
 
