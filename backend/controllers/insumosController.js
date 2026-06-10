@@ -415,28 +415,43 @@ ${text}
             }
         }
 
-        if (!modeloExitoso || !response) {
-            throw new Error(\`La IA está saturada en este momento. Por favor, intenta de nuevo en unos minutos. Detalles: \${lastError.message}\`);
-        }
-
-        let rawResponse = response.text;
-        
-        // Limpiar posible markdown o formato indeseado del modelo
-        rawResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
-
         let parsedItems = [];
-        try {
-            parsedItems = JSON.parse(rawResponse);
-        } catch (jsonError) {
+        let usoIA = false;
+
+        if (!modeloExitoso || !response) {
+            console.warn(\`Fallback a Regex debido a fallo de IA: \${lastError ? lastError.message : 'Error desconocido'}\`);
+            // Fallback al parseo Regex tradicional si la IA falla
+            const regex = /^(\d+)\s+(\S+)\s+(.+?)\s*$/gm;
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                parsedItems.push({
+                    cantidad: parseInt(match[1], 10),
+                    codigo: match[2],
+                    producto: match[3].trim()
+                });
+            }
+            if (parsedItems.length === 0) {
+                throw new Error(\`La IA está saturada (\${lastError ? lastError.message : 'Error'}) y el análisis tradicional no encontró insumos en este formato de PDF.\`);
+            }
+        } else {
+            usoIA = true;
+            let rawResponse = response.text;
+            // Limpiar posible markdown o formato indeseado del modelo
+            rawResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+            try {
+                parsedItems = JSON.parse(rawResponse);
+            } catch (jsonError) {
             console.error('Error parseando la respuesta JSON de Gemini:', rawResponse);
             return res.status(500).json({ 
                 mensaje: 'Error procesando los datos de la IA', 
                 error: jsonError.message 
             });
         }
+        } // Cierra el else (usoIA)
 
         res.json({
-            mensaje: 'PDF procesado correctamente por Inteligencia Artificial',
+            mensaje: usoIA ? 'PDF procesado correctamente por Inteligencia Artificial' : 'PDF procesado por escaneo tradicional (Fallback)',
             insumosDetectados: parsedItems,
             rawTextPreview: text.substring(0, 500)
         });
