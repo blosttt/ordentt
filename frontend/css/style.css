@@ -644,6 +644,13 @@ body {
     align-items: center;
 }
 
+.tabla-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
 .close-btn {
     background: none;
     border: none;
@@ -741,6 +748,32 @@ body {
 
     .login-left-panel {
         display: none;
+    }
+
+    .view-header.flex-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .filtros-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .insumo-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .insumo-actions select, .insumo-actions button {
+        width: 100%;
+    }
+
+    .header-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 }
 
