@@ -394,7 +394,7 @@ ${text}
         let response;
         let retries = 3;
         let lastError;
-        let modelosATratar = ['gemini-1.5-flash', 'gemini-2.5-flash'];
+        let modelosATratar = ['gemini-2.5-flash'];
         let modeloExitoso = false;
 
         for (let i = 0; i < retries; i++) {
