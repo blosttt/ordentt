@@ -399,14 +399,49 @@ ${text}
                     const response = await ai.models.generateContent({
                         model: modelosATratar[i],
                         contents: prompt,
+                        config: {
+                            responseMimeType: 'application/json',
+                            responseSchema: {
+                                type: 'ARRAY',
+                                items: {
+                                    type: 'OBJECT',
+                                    properties: {
+                                        cantidad: { type: 'INTEGER' },
+                                        codigo: { type: 'STRING' },
+                                        producto: { type: 'STRING' }
+                                    },
+                                    required: ['cantidad', 'codigo', 'producto']
+                                }
+                            }
+                        }
                     });
                     
-                    // Intentar parsear la respuesta
                     let rawResponse = response.text;
-                    rawResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    parsedItems = JSON.parse(rawResponse);
+                    let parsed = JSON.parse(rawResponse);
+                    let items = null;
                     
-                    if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+                    if (Array.isArray(parsed)) {
+                        items = parsed;
+                    } else if (parsed && typeof parsed === 'object') {
+                        // Buscar cualquier propiedad que sea un arreglo
+                        for (const key in parsed) {
+                            if (Array.isArray(parsed[key])) {
+                                items = parsed[key];
+                                break;
+                            }
+                        }
+                        // Si no es arreglo pero es un objeto con propiedades esperadas, envolverlo
+                        if (!items && (parsed.cantidad !== undefined || parsed.codigo !== undefined || parsed.producto !== undefined)) {
+                            items = [parsed];
+                        }
+                    }
+
+                    if (items && items.length > 0) {
+                        parsedItems = items.map(item => ({
+                            cantidad: parseInt(item.cantidad, 10) || 1,
+                            codigo: String(item.codigo || 'S/C').trim(),
+                            producto: String(item.producto || 'Insumo sin nombre').trim()
+                        }));
                         usoIA = true;
                         metodo = `IA (${modelosATratar[i]})`;
                         break;
@@ -414,9 +449,8 @@ ${text}
                 } catch (err) {
                     lastError = err;
                     console.warn(`Intento ${i + 1} con ${modelosATratar[i]} falló: ${err.message}`);
-                    // Espera exponencial: 2s, 4s, 8s, 16s
-                    const espera = Math.pow(2, i + 1) * 1000;
-                    await new Promise(r => setTimeout(r, espera));
+                    // Reintento rápido para no exceder los 30s de Render
+                    await new Promise(r => setTimeout(r, 200));
                 }
             }
 
@@ -431,52 +465,55 @@ ${text}
         if (!usoIA || parsedItems.length === 0) {
             parsedItems = [];
             
-            // Palabras clave a ignorar en las líneas
-            const palabrasIgnorar = /^\s*(CANTIDAD|CODIGO|PRODUCTO|TOTAL|USUARIO|FECHA|GRADO|ESTADO|DETALLE|OBSERV|No\.\s*de|Orden de|CLINICA DE)/i;
-
+            const palabrasIgnorar = /^\s*(CANTIDAD|CODIGO|PRODUCTO|TOTAL|USUARIO|FECHA|GRADO|ESTADO|DETALLE|OBSERV|No\.\s*de|Orden de|CLINICA DE|PAGINA|PAGE)/i;
             const lineas = text.split('\n');
 
             for (const linea of lineas) {
                 const lineaTrim = linea.trim();
                 if (!lineaTrim || palabrasIgnorar.test(lineaTrim)) continue;
 
-                // Patrón 1: "cantidad  codigo  producto" (formato principal del PDF de la universidad)
-                let match = lineaTrim.match(/^\s*(\d+)\s+(\d+[A-Za-z\-]*)\s{2,}(.+?)\s*$/);
-                if (!match) {
-                    // Patrón 1b: con un solo espacio entre código y producto
-                    match = lineaTrim.match(/^\s*(\d+)\s+(\d{2,}[A-Za-z\-]*)\s+(.+?)\s*$/);
-                }
-                
-                if (match) {
-                    const cant = parseInt(match[1], 10);
-                    const cod = match[2].trim();
-                    const prod = match[3].trim();
-                    // Verificar que el producto no sea puro número y que la cantidad sea razonable
-                    if (prod && isNaN(prod) && cant > 0 && cant < 10000) {
-                        parsedItems.push({ cantidad: cant, codigo: cod, producto: prod });
-                        continue;
-                    }
-                }
-
-                // Patrón 2: separado por pipes "| cantidad | codigo | producto |"
+                // Patrón separado por pipes (ej. tablas markdown)
                 if (lineaTrim.includes('|')) {
                     const partes = lineaTrim.split('|').map(p => p.trim()).filter(p => p);
-                    if (partes.length >= 3) {
+                    if (partes.length >= 2) {
                         const cant = parseInt(partes[0], 10);
-                        if (!isNaN(cant) && cant > 0 && cant < 10000) {
-                            parsedItems.push({ cantidad: cant, codigo: partes[1], producto: partes.slice(2).join(' ') });
+                        if (!isNaN(cant) && cant > 0 && cant < 1000) {
+                            let cod = 'S/C';
+                            let prod = partes[1];
+                            if (partes.length >= 3) {
+                                cod = partes[1];
+                                prod = partes.slice(2).join(' ');
+                            }
+                            parsedItems.push({ cantidad: cant, codigo: cod, producto: prod });
                             continue;
                         }
                     }
                 }
 
-                // Patrón 3: "cantidad producto" (sin código, 2+ espacios)
-                const match3 = lineaTrim.match(/^\s*(\d+)\s{2,}(.+?)\s*$/);
-                if (match3) {
-                    const cant = parseInt(match3[1], 10);
-                    const prod = match3[2].trim();
-                    if (prod && isNaN(prod) && cant > 0 && cant < 10000 && prod.length > 2) {
-                        parsedItems.push({ cantidad: cant, codigo: 'S/C', producto: prod });
+                // Patrón súper flexible: "cantidad resto"
+                const matchFlexible = lineaTrim.match(/^\s*(\d+)\s+(.+?)\s*$/);
+                if (matchFlexible) {
+                    const cant = parseInt(matchFlexible[1], 10);
+                    const resto = matchFlexible[2].trim();
+                    
+                    if (cant > 0 && cant < 1000 && resto.length > 1) {
+                        // Buscar si la primera palabra es un código (números o mayúsculas cortas)
+                        const matchCodigo = resto.match(/^([A-Za-z0-9\-]*\d+[A-Za-z0-9\-]*|[A-Z]{2,5})\s+(.+)$/);
+                        let cod = 'S/C';
+                        let prod = resto;
+                        
+                        if (matchCodigo) {
+                            cod = matchCodigo[1].trim();
+                            prod = matchCodigo[2].trim();
+                        }
+                        
+                        const esFecha = prod.match(/^\d{2,4}[\-\/]\d{2}[\-\/]\d{2,4}/);
+                        const esCorreo = prod.includes('@');
+                        const esSoloNumeros = !isNaN(prod.replace(/\s/g, ''));
+                        
+                        if (prod && !esFecha && !esCorreo && !esSoloNumeros && prod.length > 1) {
+                            parsedItems.push({ cantidad: cant, codigo: cod, producto: prod });
+                        }
                     }
                 }
             }
