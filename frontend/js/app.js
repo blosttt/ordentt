@@ -1210,7 +1210,8 @@ function renderizarHorario() {
         let totalDisponible = 0;
         for (const u in inventarioCompleto) {
             inventarioCompleto[u].forEach(ins => {
-                if (ins.nombre.toLowerCase().includes(nombreReq.toLowerCase()) || nombreReq.toLowerCase().includes(ins.nombre.toLowerCase())) {
+                const insNombre = ins.nombre || '';
+                if (insNombre.toLowerCase().includes(nombreReq.toLowerCase()) || nombreReq.toLowerCase().includes(insNombre.toLowerCase())) {
                     if (ins.esterilizado || ins.ubicacionActual === 'mis_cosas') {
                         totalDisponible += ins.cantidad;
                     }
