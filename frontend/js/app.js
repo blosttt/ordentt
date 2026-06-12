@@ -1722,6 +1722,73 @@ function customPrompt(mensaje, valorInicial = '') {
     });
 }
 
+function mostrarConfirmacionPDF(insumosPDF, mensaje = 'Se han detectado los siguientes insumos en el archivo PDF.') {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modalConfirmarPDF');
+        if (!modal) {
+            console.error("mostrarConfirmacionPDF: No se encontró el elemento modalConfirmarPDF");
+            resolve(false);
+            return;
+        }
+
+        const msgEl = modal.querySelector('.modal-body p');
+        if (msgEl) {
+            msgEl.textContent = mensaje;
+        }
+
+        const tbody = document.getElementById('tablaConfirmarPDFBody');
+        if (tbody) {
+            tbody.innerHTML = insumosPDF.map(item => `
+                <tr>
+                    <td style="padding: 0.75rem 1rem; text-align: center; font-weight: bold; border-bottom: 1px solid var(--border);">${item.cantidad}</td>
+                    <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: var(--primary); font-family: monospace;">${item.codigo || 'S/C'}</td>
+                    <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-weight: 500;">${item.producto}</td>
+                </tr>
+            `).join('');
+        }
+
+        modal.style.display = 'flex';
+
+        const btnConfirm = document.getElementById('btnPDFConfirmarAceptar');
+        const btnCancel = document.getElementById('btnPDFConfirmarCancelar');
+        const btnClose = document.getElementById('closeModalConfirmarPDF');
+
+        const cleanup = () => {
+            modal.style.display = 'none';
+            if (btnConfirm) btnConfirm.onclick = null;
+            if (btnCancel) btnCancel.onclick = null;
+            if (btnClose) btnClose.onclick = null;
+        };
+
+        if (btnConfirm) {
+            btnConfirm.onclick = () => {
+                cleanup();
+                resolve(true);
+            };
+        }
+        if (btnCancel) {
+            btnCancel.onclick = () => {
+                cleanup();
+                resolve(false);
+            };
+        }
+        if (btnClose) {
+            btnClose.onclick = () => {
+                cleanup();
+                resolve(false);
+            };
+        }
+
+        // Click fuera para cerrar
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                cleanup();
+                resolve(false);
+            }
+        };
+    });
+}
+
 // ==========================================
 // ADMINISTRADOR: LOGS DE AUDITORÍA
 // ==========================================
@@ -2155,7 +2222,7 @@ function setupDragAndDrop() {
     setupZone('pdfImportDropZone', 'pdfImportInput', async (file) => {
         const insumosPDF = await procesarArchivoPDF(file);
         if (insumosPDF && insumosPDF.length > 0) {
-            const confirmar = await customConfirm(`Se encontraron ${insumosPDF.length} insumos. ¿Proceder con la importación en Mis Cosas?`);
+            const confirmar = await mostrarConfirmacionPDF(insumosPDF, 'Se han detectado los siguientes insumos en el archivo PDF. ¿Deseas cargarlos en tu inventario (Mis Cosas)?');
             if (confirmar) {
                 logPDFProgress(`Iniciando importación secuencial a Mis Cosas...`, 'system');
                 let exitos = 0;
@@ -2199,7 +2266,7 @@ function setupDragAndDrop() {
     setupZone('pdfSendDropZone', 'pdfSendInput', async (file) => {
         const insumosPDF = await procesarArchivoPDF(file);
         if (insumosPDF && insumosPDF.length > 0) {
-            const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Mandar coincidentes a Esterilización?`);
+            const confirmar = await mostrarConfirmacionPDF(insumosPDF, 'Se han detectado los siguientes insumos en el archivo PDF. ¿Deseas enviar las unidades coincidentes a la Central de Esterilización?');
             if (confirmar) {
                 logPDFProgress(`Iniciando envío de insumos a Central de Esterilización...`, 'system');
                 let enviados = 0;
@@ -2241,7 +2308,7 @@ function setupDragAndDrop() {
     setupZone('pdfReceiveDropZone', 'pdfReceiveInput', async (file) => {
         const insumosPDF = await procesarArchivoPDF(file);
         if (insumosPDF && insumosPDF.length > 0) {
-            const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Recibir coincidentes desde Esterilización?`);
+            const confirmar = await mostrarConfirmacionPDF(insumosPDF, 'Se han detectado los siguientes insumos en el archivo PDF. ¿Deseas recibir las unidades coincidentes desde la Central de Esterilización hacia tu Locker?');
             if (confirmar) {
                 logPDFProgress(`Iniciando recepción de insumos desde Central de Esterilización...`, 'system');
                 let recibidos = 0;

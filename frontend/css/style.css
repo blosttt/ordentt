@@ -705,45 +705,138 @@ body.dark-mode .login-input {
     min-height: 800px;
 }
 
-.calendar-days {
+.calendar-time-col {
+    width: 60px;
+    border-right: 1px solid var(--border);
+    background-color: var(--secondary);
+    display: flex;
+    flex-direction: column;
+    padding-top: 40px; /* offset for header */
+}
+
+.time-slot {
+    height: 60px; /* each hour is 60px high */
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    transform: translateY(-8px); /* center text on the line */
+}
+
+.calendar-days-container {
+    flex: 1;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    width: 100%;
+    grid-template-columns: repeat(7, 1fr);
+    position: relative;
+    overflow-x: auto;
+}
+
+/* Las líneas de fondo horizontales */
+.calendar-bg-grid {
+    position: absolute;
+    top: 40px; /* header height */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.bg-hour-line {
+    height: 60px;
+    border-top: 1px solid var(--border);
+    opacity: 0.3;
 }
 
 .calendar-day-col {
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 2; /* above bg lines */
 }
 
 .calendar-day-col:last-child {
     border-right: none;
 }
 
-.calendar-day-header {
-    padding: 1rem;
-    text-align: center;
+.day-header {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--primary);
     border-bottom: 1px solid var(--border);
     background-color: var(--secondary-hover);
+    font-size: 0.9rem;
+    position: sticky;
+    top: 0;
+    z-index: 5;
 }
 
-.calendar-day-header h4 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text-main);
-}
-
-.calendar-day-header span {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.calendar-day-slots {
-    flex: 1;
+.day-events {
     position: relative;
-    background-color: var(--secondary);
+    flex: 1;
+}
+
+/* Eventos posicionados absolutamente */
+.calendar-event {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    background: var(--secondary);
+    border-left: 4px solid var(--primary);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    overflow-y: auto;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 10;
+}
+
+.calendar-event:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-md);
+    z-index: 20;
+}
+
+.calendar-event .time {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
+}
+
+.calendar-event .title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.calendar-event .implements {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.calendar-event .implements li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.15rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
 }
 
 /* Slot clinics styling */
@@ -1100,7 +1193,7 @@ body.dark-mode .login-input {
         min-height: auto;
     }
 
-    .calendar-days {
+    .calendar-days-container {
         grid-template-columns: 1fr;
     }
 
