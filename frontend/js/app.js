@@ -543,14 +543,14 @@ function seleccionarDelCatalogo() {
     }
 }
 
-function abrirModalSolicitud() {
+function abrirModalSolicitud(preselectedId = null) {
     const selectInsumo = document.getElementById('solicitudInsumoId');
     if (selectInsumo) {
         let insumosDisponibles = [];
         for (const ubicacion in inventarioCompleto) {
             if (ubicacion !== 'central_esterilizacion') {
                 insumosDisponibles = insumosDisponibles.concat(
-                    inventarioCompleto[ubicacion].filter(i => !i.esterilizado)
+                    inventarioCompleto[ubicacion].filter(i => !i.esterilizado || i._id === preselectedId)
                 );
             }
         }
@@ -564,12 +564,19 @@ function abrirModalSolicitud() {
 
         selectInsumo.onchange = function () {
             const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
+            if (selectedOption && selectedOption.value) {
                 const max = selectedOption.getAttribute('data-max');
                 document.getElementById('solicitudCantidad').max = max;
                 document.getElementById('solicitudCantidad').value = max;
             }
         };
+
+        if (preselectedId) {
+            selectInsumo.value = preselectedId;
+            if (typeof selectInsumo.onchange === 'function') {
+                selectInsumo.onchange();
+            }
+        }
     }
     const modalSolicitud = document.getElementById('modalSolicitud');
     if (modalSolicitud) {
@@ -797,11 +804,21 @@ function renderizarInsumos(ubicacionDOM, insumos, esVistaMaestra = false) {
                 }
             });
 
+            let btnEsterilizar = '';
+            if (!insumo.esterilizado) {
+                btnEsterilizar = `
+                <button onclick="abrirModalSolicitud('${insumo._id}')" class="btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; width: 100%; height: 35px; gap: 0.25rem; margin-top: 0.5rem;">
+                    🏥 Enviar a Esterilizar
+                </button>
+                `;
+            }
+
             optionsHtml = `
-            <div class="insumo-actions">
-                <select onchange="moverInsumoDOM(this, '${insumo._id}', '${insumo.ubicacionActual}', ${insumo.cantidad})">
+            <div class="insumo-actions" style="display: flex; flex-direction: column; gap: 0.25rem; width: 100%;">
+                <select onchange="moverInsumoDOM(this, '${insumo._id}', '${insumo.ubicacionActual}', ${insumo.cantidad})" style="border-radius: var(--radius-md); height: 35px; padding: 0.4rem;">
                     ${options}
                 </select>
+                ${btnEsterilizar}
             </div>`;
         }
 
