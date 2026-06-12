@@ -16,7 +16,14 @@ exports.login = async (req, res) => {
             descripcion: `El usuario ${carnet} inició sesión en el sistema.`
         });
         
-        res.json({ mensaje: 'Login exitoso', usuario });
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: usuario._id, carnet: usuario.carnet, rol: usuario.rol },
+            process.env.JWT_SECRET || 'secret_ordent_tracker_key_2026',
+            { expiresIn: '2h' } // Sesión expira tras 2 horas de inactividad / tiempo absoluto
+        );
+        
+        res.json({ mensaje: 'Login exitoso', usuario, token });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error en el servidor', error: error.message });
     }
@@ -42,7 +49,14 @@ exports.register = async (req, res) => {
             descripcion: `Se registró un nuevo usuario: ${carnet} con rol ${rol}.`
         });
         
-        res.status(201).json({ mensaje: 'Usuario registrado', usuario: nuevoUsuario });
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: nuevoUsuario._id, carnet: nuevoUsuario.carnet, rol: nuevoUsuario.rol },
+            process.env.JWT_SECRET || 'secret_ordent_tracker_key_2026',
+            { expiresIn: '2h' }
+        );
+
+        res.status(201).json({ mensaje: 'Usuario registrado', usuario: nuevoUsuario, token });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al registrar', error: error.message });
     }

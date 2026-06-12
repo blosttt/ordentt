@@ -1,11 +1,27 @@
 const API_URL = '/api';
 
-// Interceptor global para registrar en consola todas las llamadas a la API
+// Interceptor global para registrar en consola todas las llamadas a la API y manejar tokens
 const originalFetch = window.fetch;
 window.fetch = async function (...args) {
     const isApiCall = typeof args[0] === 'string' && args[0].includes('/api');
 
     if (isApiCall) {
+        // Adjuntar token de sesión si existe
+        const token = localStorage.getItem('usuarioToken');
+        if (token) {
+            if (!args[1]) args[1] = {};
+            if (!args[1].headers) args[1].headers = {};
+            
+            if (args[1].headers instanceof Headers) {
+                args[1].headers.set('Authorization', `Bearer ${token}`);
+            } else if (Array.isArray(args[1].headers)) {
+                const hasAuth = args[1].headers.some(h => h[0].toLowerCase() === 'authorization');
+                if (!hasAuth) args[1].headers.push(['Authorization', `Bearer ${token}`]);
+            } else {
+                args[1].headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
+
         const method = (args[1] && args[1].method) ? args[1].method : 'GET';
         console.groupCollapsed(`🌐 [API Request] ${method} ${args[0]}`);
         if (args[1] && args[1].body) {
@@ -21,6 +37,13 @@ window.fetch = async function (...args) {
         const response = await originalFetch.apply(this, args);
 
         if (isApiCall) {
+            // Si la sesión expiró (401), desloguear automáticamente (salvo en la ruta de login)
+            if (response.status === 401 && typeof args[0] === 'string' && !args[0].includes('/usuarios/login')) {
+                logout();
+                mostrarNotificacion('Tu sesión ha expirado. Por favor inicia sesión de nuevo.', 'warning');
+                return response;
+            }
+
             const clonedResponse = response.clone();
             clonedResponse.text().then(text => {
                 console.groupCollapsed(`✅ [API Response] ${response.status} ${args[0]}`);
@@ -146,6 +169,7 @@ function verificarSesion() {
                 }
 
                 usuarioActivo = data.usuario;
+                localStorage.setItem('usuarioToken', data.token);
                 localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
                 iniciarAplicacion();
             } catch (error) {
@@ -174,6 +198,7 @@ function verificarSesion() {
 
                     // Auto login después del registro
                     usuarioActivo = data.usuario;
+                    localStorage.setItem('usuarioToken', data.token);
                     localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
                     iniciarAplicacion();
                 } catch (error) {
@@ -237,6 +262,7 @@ function iniciarAplicacion() {
 
 function logout() {
     localStorage.removeItem('usuarioActivo');
+    localStorage.removeItem('usuarioToken');
     location.reload();
 }
 

@@ -22,14 +22,16 @@ app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // Rutas de la API
+const authMiddleware = require('./middleware/authMiddleware');
+
 app.use('/api/usuarios', require('./routes/usuariosRoutes'));
-app.use('/api/configuracion/clinicas', require('./routes/clinicasRoutes'));
-app.use('/api/insumos', require('./routes/insumosRoutes'));
-app.use('/api/solicitudes', require('./routes/solicitudesRoutes'));
-app.use('/api/cajas', require('./routes/cajasRoutes'));
-app.use('/api/plantillas', require('./routes/plantillasRoutes'));
-app.use('/api/logs', require('./routes/logsRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/configuracion/clinicas', authMiddleware, require('./routes/clinicasRoutes'));
+app.use('/api/insumos', authMiddleware, require('./routes/insumosRoutes'));
+app.use('/api/solicitudes', authMiddleware, require('./routes/solicitudesRoutes'));
+app.use('/api/cajas', authMiddleware, require('./routes/cajasRoutes'));
+app.use('/api/plantillas', authMiddleware, require('./routes/plantillasRoutes'));
+app.use('/api/logs', authMiddleware, require('./routes/logsRoutes'));
+app.use('/api/admin', authMiddleware, require('./routes/adminRoutes'));
 
 // Fallback para SPA (si fuera necesario, aquí servimos el index para rutas no encontradas)
 app.use((req, res) => {
