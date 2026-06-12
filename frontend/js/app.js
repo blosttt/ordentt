@@ -458,6 +458,7 @@ function setupModals() {
 }
 
 function abrirModalAddInsumo() {
+    console.log("abrirModalAddInsumo: Iniciado");
     cargarCatalogo();
     // Resetear formulario al abrir
     const form = document.getElementById('formInsumo');
@@ -480,7 +481,10 @@ function abrirModalAddInsumo() {
 
     const modalInsumo = document.getElementById('modalInsumo');
     if (modalInsumo) {
-        modalInsumo.style.display = 'block';
+        console.log("abrirModalAddInsumo: Mostrando modal con display flex");
+        modalInsumo.style.display = 'flex';
+    } else {
+        console.error("abrirModalAddInsumo: Error - No se encontró el elemento modalInsumo");
     }
 }
 
@@ -567,13 +571,17 @@ function abrirModalSolicitud() {
             }
         };
     }
-    document.getElementById('modalSolicitud').style.display = 'block';
+    const modalSolicitud = document.getElementById('modalSolicitud');
+    if (modalSolicitud) {
+        modalSolicitud.style.display = 'flex';
+    }
 }
 
 // ==========================================
 // EVENT LISTENERS SECUNDARIOS
 // ==========================================
 function setupEventListeners() {
+    console.log("setupEventListeners: Iniciado");
     const btnGuardarClinica = document.getElementById('btnGuardarClinica');
     if (btnGuardarClinica) btnGuardarClinica.onclick = guardarClinica;
 
@@ -584,7 +592,16 @@ function setupEventListeners() {
     if (btnAgregarImplemento) btnAgregarImplemento.onclick = agregarImplementoTemp;
 
     const btnAgregarInsumoHeader = document.getElementById('btnAgregarInsumoHeader');
-    if (btnAgregarInsumoHeader) btnAgregarInsumoHeader.onclick = abrirModalAddInsumo;
+    if (btnAgregarInsumoHeader) {
+        console.log("setupEventListeners: Vinculando click a btnAgregarInsumoHeader");
+        btnAgregarInsumoHeader.addEventListener('click', (e) => {
+            console.log("setupEventListeners: Click detectado en btnAgregarInsumoHeader");
+            e.preventDefault();
+            abrirModalAddInsumo();
+        });
+    } else {
+        console.warn("setupEventListeners: No se encontró btnAgregarInsumoHeader en el DOM");
+    }
 
     const btnAgregarCaja = document.getElementById('btnAgregarCaja');
     if (btnAgregarCaja) btnAgregarCaja.onclick = crearCaja;
