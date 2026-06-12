@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarSesion();
     setupModals();
     setupEventListeners();
+    setupDragAndDrop();
 });
 
 function initTheme() {
@@ -248,6 +249,7 @@ function setupNavigation() {
     const vistaContenedores = document.getElementById('vistaContenedores');
     const vistaTabla = document.getElementById('vistaTabla');
     const vistaHorario = document.getElementById('vistaHorario');
+    const vistaCargaPDF = document.getElementById('vistaCargaPDF');
     const vistaConfig = document.getElementById('vistaConfig');
     const vistaPerfil = document.getElementById('vistaPerfil');
     const vistaAdmin = document.getElementById('vistaAdmin');
@@ -259,6 +261,7 @@ function setupNavigation() {
         if(vistaContenedores) vistaContenedores.style.display = 'none';
         if(vistaTabla) vistaTabla.style.display = 'none';
         if(vistaHorario) vistaHorario.style.display = 'none';
+        if(vistaCargaPDF) vistaCargaPDF.style.display = 'none';
         if(vistaConfig) vistaConfig.style.display = 'none';
         if(vistaPerfil) vistaPerfil.style.display = 'none';
         if(vistaAdmin) vistaAdmin.style.display = 'none';
@@ -277,11 +280,14 @@ function setupNavigation() {
     }
 
     // --- Header Logo ---
-    document.getElementById('btnLogoHome').onclick = () => {
-        hideAll();
-        vistaHome.style.display = 'block';
-        setActiveSidebarItem('btnMenuHome');
-    };
+    const btnLogoHome = document.getElementById('btnLogoHome');
+    if (btnLogoHome) {
+        btnLogoHome.onclick = () => {
+            hideAll();
+            if (vistaHome) vistaHome.style.display = 'block';
+            setActiveSidebarItem('btnMenuHome');
+        };
+    }
 
     // --- Sidebar & Navigation Actions ---
     const btnMenuHome = document.getElementById('btnMenuHome');
@@ -289,7 +295,7 @@ function setupNavigation() {
         btnMenuHome.onclick = (e) => {
             if (e) e.preventDefault();
             hideAll();
-            vistaHome.style.display = 'block';
+            if (vistaHome) vistaHome.style.display = 'block';
             setActiveSidebarItem('btnMenuHome');
         };
     }
@@ -319,7 +325,7 @@ function setupNavigation() {
         btnMenuMisDatos.onclick = (e) => {
             e.preventDefault();
             hideAll();
-            vistaPerfil.style.display = 'block';
+            if (vistaPerfil) vistaPerfil.style.display = 'block';
             setActiveSidebarItem('btnMenuMisDatos');
         };
     }
@@ -328,7 +334,7 @@ function setupNavigation() {
     if(btnMenuMisCosas) btnMenuMisCosas.onclick = (e) => {
         if(e) e.preventDefault();
         hideAll();
-        vistaMisCosas.style.display = 'block';
+        if (vistaMisCosas) vistaMisCosas.style.display = 'block';
         setActiveSidebarItem('btnMenuMisCosas');
         cargarInventario();
     };
@@ -337,7 +343,7 @@ function setupNavigation() {
     if(btnMenuDashboard) btnMenuDashboard.onclick = (e) => {
         if(e) e.preventDefault();
         hideAll();
-        vistaContenedores.style.display = 'block';
+        if (vistaContenedores) vistaContenedores.style.display = 'block';
         setActiveSidebarItem('btnMenuDashboard');
         cargarInventario();
     };
@@ -346,14 +352,22 @@ function setupNavigation() {
     if(btnMenuHorario) btnMenuHorario.onclick = (e) => {
         if(e) e.preventDefault();
         hideAll();
-        vistaHorario.style.display = 'block';
+        if (vistaHorario) vistaHorario.style.display = 'block';
         setActiveSidebarItem('btnMenuHorario');
         if (typeof renderizarHorario === 'function') renderizarHorario();
     };
 
+    const btnMenuCargaPDF = document.getElementById('btnMenuCargaPDF');
+    if(btnMenuCargaPDF) btnMenuCargaPDF.onclick = (e) => {
+        if(e) e.preventDefault();
+        hideAll();
+        if (vistaCargaPDF) vistaCargaPDF.style.display = 'block';
+        setActiveSidebarItem('btnMenuCargaPDF');
+    };
+
     const openConfigAndScroll = (sectionId) => {
         hideAll();
-        vistaConfig.style.display = 'block';
+        if (vistaConfig) vistaConfig.style.display = 'block';
         cargarClinicas();
         cargarCajas();
         cargarPlantillas();
@@ -363,68 +377,110 @@ function setupNavigation() {
         }, 100);
     };
 
-    document.getElementById('btnMenuConfPlantillas').onclick = (e) => { e.preventDefault(); openConfigAndScroll('secPlantillas'); };
-    document.getElementById('btnMenuConfClinicas').onclick = (e) => { e.preventDefault(); openConfigAndScroll('secClinicas'); };
-    document.getElementById('btnMenuConfContenedores').onclick = (e) => { e.preventDefault(); openConfigAndScroll('secContenedores'); };
+    const btnMenuConfPlantillas = document.getElementById('btnMenuConfPlantillas');
+    if (btnMenuConfPlantillas) btnMenuConfPlantillas.onclick = (e) => { e.preventDefault(); openConfigAndScroll('secPlantillas'); };
+
+    const btnMenuConfClinicas = document.getElementById('btnMenuConfClinicas');
+    if (btnMenuConfClinicas) btnMenuConfClinicas.onclick = (e) => { e.preventDefault(); openConfigAndScroll('secClinicas'); };
+
+    const btnMenuConfContenedores = document.getElementById('btnMenuConfContenedores');
+    if (btnMenuConfContenedores) btnMenuConfContenedores.onclick = (e) => { e.preventDefault(); openConfigAndScroll('secContenedores'); };
 
     const btnAdminPanel = document.getElementById('btnMenuAdminPanel');
     if (btnAdminPanel) {
         btnAdminPanel.onclick = (e) => {
             e.preventDefault();
             hideAll();
-            vistaAdmin.style.display = 'block';
+            if (vistaAdmin) vistaAdmin.style.display = 'block';
             cargarLogsAdmin();
             cargarUsuariosAdmin();
         };
     }
 
-    // (Duplicate listeners removed as they were consolidated above)
-
-    document.getElementById('btnLogoutDropdown').onclick = (e) => {
-        e.preventDefault();
-        logout();
-    };
+    const btnLogoutDropdown = document.getElementById('btnLogoutDropdown');
+    if (btnLogoutDropdown) {
+        btnLogoutDropdown.onclick = (e) => {
+            e.preventDefault();
+            logout();
+        };
+    }
 
     // --- Home Cards Logic ---
     const cardHomeMisCosas = document.getElementById('cardHomeMisCosas');
-    if (cardHomeMisCosas) cardHomeMisCosas.onclick = () => { document.getElementById('btnMenuMisCosas').click(); };
+    if (cardHomeMisCosas) cardHomeMisCosas.onclick = () => {
+        const btn = document.getElementById('btnMenuMisCosas');
+        if (btn) btn.click();
+    };
     
     const cardHomeDashboard = document.getElementById('cardHomeDashboard');
-    if (cardHomeDashboard) cardHomeDashboard.onclick = () => { document.getElementById('btnMenuDashboard').click(); };
+    if (cardHomeDashboard) cardHomeDashboard.onclick = () => {
+        const btn = document.getElementById('btnMenuDashboard');
+        if (btn) btn.click();
+    };
     
     const btnHomeToHorario = document.getElementById('btnHomeToHorario');
-    if (btnHomeToHorario) btnHomeToHorario.onclick = () => { document.getElementById('btnMenuHorario').click(); };
+    if (btnHomeToHorario) btnHomeToHorario.onclick = () => {
+        const btn = document.getElementById('btnMenuHorario');
+        if (btn) btn.click();
+    };
 }
 
 // ==========================================
 // MODALS
 // ==========================================
 function setupModals() {
-    const modalInsumo = document.getElementById('modalInsumo');
-    const modalSolicitud = document.getElementById('modalSolicitud');
+    try {
+        const modalInsumo = document.getElementById('modalInsumo');
+        const modalSolicitud = document.getElementById('modalSolicitud');
 
-    document.getElementById('closeModalInsumo').onclick = () => modalInsumo.style.display = 'none';
+        const closeInsumo = document.getElementById('closeModalInsumo');
+        if (closeInsumo) closeInsumo.onclick = () => { if (modalInsumo) modalInsumo.style.display = 'none'; };
 
-    document.getElementById('btnAgregarSolicitud').onclick = () => abrirModalSolicitud();
-    document.getElementById('closeModalSolicitud').onclick = () => modalSolicitud.style.display = 'none';
+        const btnAddSolicitud = document.getElementById('btnAgregarSolicitud');
+        if (btnAddSolicitud) btnAddSolicitud.onclick = () => abrirModalSolicitud();
+        
+        const closeSolicitud = document.getElementById('closeModalSolicitud');
+        if (closeSolicitud) closeSolicitud.onclick = () => { if (modalSolicitud) modalSolicitud.style.display = 'none'; };
 
-    window.onclick = (event) => {
-        if (event.target === modalInsumo) modalInsumo.style.display = 'none';
-        if (event.target === modalSolicitud) modalSolicitud.style.display = 'none';
-    };
+        window.onclick = (event) => {
+            if (event.target === modalInsumo) modalInsumo.style.display = 'none';
+            if (event.target === modalSolicitud) modalSolicitud.style.display = 'none';
+        };
 
-    document.getElementById('formInsumo').onsubmit = guardarInsumo;
-    document.getElementById('formSolicitud').onsubmit = guardarSolicitud;
+        const formInsumo = document.getElementById('formInsumo');
+        if (formInsumo) formInsumo.onsubmit = guardarInsumo;
+
+        const formSolicitud = document.getElementById('formSolicitud');
+        if (formSolicitud) formSolicitud.onsubmit = guardarSolicitud;
+    } catch (err) {
+        console.error("Error setting up modals:", err);
+    }
 }
 
 function abrirModalAddInsumo() {
-    console.log("Abriendo modal de nuevo insumo...");
     cargarCatalogo();
+    // Resetear formulario al abrir
+    const form = document.getElementById('formInsumo');
+    if (form) form.reset();
+
+    const catalogoInput = document.getElementById('catalogoInput');
+    if (catalogoInput) catalogoInput.value = '';
+
+    const nombreInput = document.getElementById('nombre');
+    if (nombreInput) {
+        nombreInput.value = '';
+        nombreInput.readOnly = false;
+    }
+
+    const codigoInput = document.getElementById('codigo');
+    if (codigoInput) {
+        codigoInput.value = '';
+        codigoInput.readOnly = false;
+    }
+
     const modalInsumo = document.getElementById('modalInsumo');
     if (modalInsumo) {
         modalInsumo.style.display = 'block';
-    } else {
-        console.error("modalInsumo no encontrado en el DOM");
     }
 }
 
@@ -449,20 +505,16 @@ function cargarCatalogo() {
 
 function seleccionarDelCatalogo() {
     const inputBuscador = document.getElementById('catalogoInput');
-    const customDiv = document.getElementById('camposPersonalizados');
     const inputNombre = document.getElementById('nombre');
     const inputCodigo = document.getElementById('codigo');
-
     const valor = inputBuscador.value;
 
     if (valor === '➕ Agregar insumo personalizado (OTRO)') {
-        customDiv.style.display = 'block';
         inputNombre.value = '';
         inputCodigo.value = '';
         inputNombre.readOnly = false;
         inputCodigo.readOnly = false;
-        inputNombre.required = true;
-        inputCodigo.required = true;
+        inputNombre.focus();
     } else if (valor.includes(' - ')) {
         const partes = valor.split(' - ');
         const codigo = partes[0];
@@ -470,7 +522,6 @@ function seleccionarDelCatalogo() {
 
         const existe = typeof catalogoInsumos !== 'undefined' && catalogoInsumos.find(i => i.codigo === codigo);
 
-        customDiv.style.display = 'block';
         inputNombre.value = nombre;
         inputCodigo.value = codigo;
 
@@ -481,16 +532,10 @@ function seleccionarDelCatalogo() {
             inputNombre.readOnly = false;
             inputCodigo.readOnly = false;
         }
-        inputNombre.required = true;
-        inputCodigo.required = true;
-    } else {
-        customDiv.style.display = 'block';
-        inputNombre.value = valor;
-        inputCodigo.value = '';
+    } else if (valor.length > 0) {
+        // El usuario está escribiendo algo que no matchea catálogo — dejar libre
         inputNombre.readOnly = false;
         inputCodigo.readOnly = false;
-        inputNombre.required = true;
-        inputCodigo.required = true;
     }
 }
 
@@ -621,10 +666,19 @@ async function cargarInventario() {
 
 async function guardarInsumo(e) {
     e.preventDefault();
-    const nombre = document.getElementById('nombre').value;
-    const codigo = document.getElementById('codigo').value;
+    let nombre = document.getElementById('nombre').value.trim();
+    let codigo = document.getElementById('codigo').value.trim();
     const descripcion = document.getElementById('descripcion').value || 'Sin descripción';
-    const cantidad = document.getElementById('cantidadInsumo').value;
+    const cantidad = parseInt(document.getElementById('cantidadInsumo').value) || 1;
+
+    if (!nombre) {
+        return mostrarNotificacion('El nombre del insumo es obligatorio', 'warning');
+    }
+
+    // Si no hay código, generar uno automático
+    if (!codigo) {
+        codigo = 'CUSTOM-' + Date.now().toString(36).toUpperCase();
+    }
 
     try {
         const response = await fetch(`${API_URL}/insumos`, {
@@ -636,14 +690,14 @@ async function guardarInsumo(e) {
             document.getElementById('modalInsumo').style.display = 'none';
             document.getElementById('formInsumo').reset();
             document.getElementById('catalogoInput').value = '';
-            document.getElementById('camposPersonalizados').style.display = 'none';
             mostrarNotificacion('✅ Insumo guardado en Mis Cosas', 'success');
             cargarInventario();
         } else {
-            mostrarNotificacion('Error al guardar', 'error');
+            const errData = await response.json().catch(() => ({}));
+            mostrarNotificacion(errData.mensaje || 'Error al guardar', 'error');
         }
     } catch (error) {
-        mostrarNotificacion('Error de conexión', 'error');
+        mostrarNotificacion('Error de conexión con el servidor', 'error');
     }
 }
 
@@ -1556,14 +1610,29 @@ async function eliminarPlantillaDOM(id, nombre) {
 // ==========================================
 // UTILIDADES
 // ==========================================
-function mostrarNotificacion(mensaje, tipo) {
-    const notificacion = document.createElement('div');
-    notificacion.className = `notificacion notificacion-${tipo}`;
-    notificacion.textContent = mensaje;
-    document.body.appendChild(notificacion);
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    
+    let icon = 'ℹ️';
+    if (tipo === 'success') icon = '✅';
+    else if (tipo === 'warning') icon = '⚠️';
+    else if (tipo === 'error') icon = '❌';
+    
+    toast.innerHTML = `<span>${icon}</span> <span>${mensaje}</span>`;
+    container.appendChild(toast);
+    
     setTimeout(() => {
-        notificacion.style.animation = 'slideOutRight 0.3s forwards';
-        setTimeout(() => notificacion.remove(), 300);
+        toast.classList.add('toast-fadeout');
+        setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
 
@@ -1678,11 +1747,36 @@ async function cargarLogsAdmin() {
 // AUTOMATIZACIÓN CON PDF
 // ==========================================
 
+// Console/Terminal PDF logging utility
+function logPDFProgress(mensaje, tipo = 'info') {
+    const consoleLog = document.getElementById('pdfConsoleLog');
+    if (!consoleLog) return;
+
+    const line = document.createElement('div');
+    line.className = `terminal-line ${tipo}-line`;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    line.textContent = `[${timestamp}] ${mensaje}`;
+    consoleLog.appendChild(line);
+    
+    // Auto-scroll to bottom
+    consoleLog.scrollTop = consoleLog.scrollHeight;
+}
+
+window.limpiarTerminalPDF = function() {
+    const consoleLog = document.getElementById('pdfConsoleLog');
+    if (consoleLog) {
+        consoleLog.innerHTML = '<div class="terminal-line system-line">> Terminal lista. Esperando archivo PDF...</div>';
+    }
+};
+
 async function procesarArchivoPDF(file) {
+    window.limpiarTerminalPDF();
+    logPDFProgress(`Iniciando análisis del archivo: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, 'system');
+    logPDFProgress('Enviando archivo al servidor para procesamiento con IA/Regex...', 'system');
+
     const formData = new FormData();
     formData.append('pdf', file);
-
-    mostrarNotificacion('Analizando PDF, por favor espera...', 'info');
     
     try {
         const res = await fetch(`${API_URL}/insumos/parse-pdf`, {
@@ -1692,9 +1786,14 @@ async function procesarArchivoPDF(file) {
         const data = await res.json();
         if (!res.ok) throw new Error((data.mensaje || 'Error en el servidor') + (data.error ? ': ' + data.error : ''));
         
+        logPDFProgress(`Análisis completado con éxito!`, 'success');
+        logPDFProgress(`Método de extracción: ${data.mensaje || 'N/A'}`, 'success');
+        logPDFProgress(`Se detectaron ${data.insumosDetectados ? data.insumosDetectados.length : 0} insumos en el documento.`, 'info');
+        
         return data.insumosDetectados || [];
     } catch (error) {
-        mostrarNotificacion(error.message, 'error');
+        logPDFProgress(`ERROR: ${error.message}`, 'error');
+        mostrarNotificacion('Fallo en el procesamiento del PDF', 'error');
         return null;
     }
 }
@@ -1708,29 +1807,43 @@ document.getElementById('pdfImportInput')?.addEventListener('change', async (e) 
     e.target.value = ''; // reset
 
     if (insumosPDF && insumosPDF.length > 0) {
-        const confirmar = await customConfirm(`Se encontraron ${insumosPDF.length} insumos en el PDF. ¿Deseas importarlos todos a Mis Cosas?`);
+        const confirmar = await customConfirm(`Se encontraron ${insumosPDF.length} insumos. ¿Proceder con la importación en Mis Cosas?`);
         if (confirmar) {
-            mostrarNotificacion('Importando...', 'info');
-            // Secuencial para evitar saturar si son muchos
+            logPDFProgress(`Iniciando importación secuencial a Mis Cosas...`, 'system');
+            let exitos = 0;
             for (let item of insumosPDF) {
-                await fetch(`${API_URL}/insumos`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        nombre: item.producto, 
-                        codigo: item.codigo, 
-                        tipo: 'Importado de PDF', 
-                        esterilizado: false, 
-                        cantidad: item.cantidad, 
-                        usuarioId: usuarioActivo._id 
-                    })
-                });
+                try {
+                    logPDFProgress(`Guardando: ${item.producto} (${item.codigo || 'S/C'})...`, 'info');
+                    const res = await fetch(`${API_URL}/insumos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            nombre: item.producto, 
+                            codigo: item.codigo, 
+                            tipo: 'Importado de PDF', 
+                            esterilizado: false, 
+                            cantidad: item.cantidad, 
+                            usuarioId: usuarioActivo._id 
+                        })
+                    });
+                    if (res.ok) {
+                        exitos++;
+                        logPDFProgress(`✅ Guardado: ${item.producto}`, 'success');
+                    } else {
+                        logPDFProgress(`❌ Error al guardar: ${item.producto}`, 'error');
+                    }
+                } catch (err) {
+                    logPDFProgress(`❌ Error de conexión para: ${item.producto}`, 'error');
+                }
             }
+            logPDFProgress(`Proceso de importación finalizado. Exitosos: ${exitos}/${insumosPDF.length}`, 'success');
             mostrarNotificacion('✅ Importación completada', 'success');
             cargarInventario();
+        } else {
+            logPDFProgress(`Importación cancelada por el usuario.`, 'warning');
         }
     } else if (insumosPDF && insumosPDF.length === 0) {
-        mostrarNotificacion('No se detectaron insumos válidos en este PDF.', 'warning');
+        logPDFProgress('No se detectaron insumos válidos en el PDF.', 'warning');
     }
 });
 
@@ -1742,26 +1855,40 @@ document.getElementById('pdfSendInput')?.addEventListener('change', async (e) =>
     e.target.value = '';
 
     if (insumosPDF && insumosPDF.length > 0) {
-        const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Mandar todos los coincidentes a Esterilización?`);
+        const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Mandar coincidentes a Esterilización?`);
         if (confirmar) {
+            logPDFProgress(`Iniciando envío de insumos a Central de Esterilización...`, 'system');
             let enviados = 0;
-            // Buscar en el inventario actual
             for (let item of insumosPDF) {
-                // Buscamos un insumo nuestro que coincida en código y no esté ya en central
                 const miInsumo = inventarioCompleto['mis_cosas']?.find(i => i.codigo === item.codigo) 
                     || Object.values(inventarioCompleto).flat().find(i => i.codigo === item.codigo && i.ubicacionActual !== 'central_esterilizacion');
                 
                 if (miInsumo) {
-                    await fetch(`${API_URL}/insumos/enviar-esterilizacion/${miInsumo._id}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ cantidad: Math.min(item.cantidad, miInsumo.cantidad) })
-                    });
-                    enviados++;
+                    try {
+                        logPDFProgress(`Enviando ${Math.min(item.cantidad, miInsumo.cantidad)} unidades de ${miInsumo.nombre} (${miInsumo.codigo})...`, 'info');
+                        const res = await fetch(`${API_URL}/insumos/enviar-esterilizacion/${miInsumo._id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cantidad: Math.min(item.cantidad, miInsumo.cantidad) })
+                        });
+                        if (res.ok) {
+                            enviados++;
+                            logPDFProgress(`✅ Enviado con éxito`, 'success');
+                        } else {
+                            logPDFProgress(`❌ Fallo al enviar a central`, 'error');
+                        }
+                    } catch (err) {
+                        logPDFProgress(`❌ Error de red`, 'error');
+                    }
+                } else {
+                    logPDFProgress(`⚠️ Insumo con código ${item.codigo} no encontrado en tu inventario activo.`, 'warning');
                 }
             }
+            logPDFProgress(`Proceso finalizado. Total enviados: ${enviados}`, 'success');
             mostrarNotificacion(`✅ ${enviados} insumos enviados a esterilización`, 'success');
             cargarInventario();
+        } else {
+            logPDFProgress(`Envío cancelado por el usuario.`, 'warning');
         }
     }
 });
@@ -1774,24 +1901,38 @@ document.getElementById('pdfReceiveInput')?.addEventListener('change', async (e)
     e.target.value = '';
 
     if (insumosPDF && insumosPDF.length > 0) {
-        const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Recibir todos los coincidentes desde Esterilización?`);
+        const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Recibir coincidentes desde Esterilización?`);
         if (confirmar) {
+            logPDFProgress(`Iniciando recepción de insumos desde Central de Esterilización...`, 'system');
             let recibidos = 0;
             for (let item of insumosPDF) {
-                // Buscamos insumos que ESTÁN en central_esterilizacion con ese código
                 const enCentral = inventarioCompleto['central_esterilizacion']?.filter(i => i.codigo === item.codigo);
                 if (enCentral && enCentral.length > 0) {
-                    // Por si hay varios bloques
                     for (let esterilizando of enCentral) {
-                        await fetch(`${API_URL}/insumos/recibir-esterilizado/${esterilizando._id}`, {
-                            method: 'PUT'
-                        });
-                        recibidos++;
+                        try {
+                            logPDFProgress(`Recibiendo: ${esterilizando.nombre} (${esterilizando.codigo})...`, 'info');
+                            const res = await fetch(`${API_URL}/insumos/recibir-esterilizado/${esterilizando._id}`, {
+                                method: 'PUT'
+                            });
+                            if (res.ok) {
+                                recibidos++;
+                                logPDFProgress(`✅ Recibido y guardado en Locker`, 'success');
+                            } else {
+                                logPDFProgress(`❌ Fallo al recibir de central`, 'error');
+                            }
+                        } catch (err) {
+                            logPDFProgress(`❌ Error de red`, 'error');
+                        }
                     }
+                } else {
+                    logPDFProgress(`⚠️ No hay insumos pendientes en Central con el código ${item.codigo}.`, 'warning');
                 }
             }
+            logPDFProgress(`Proceso finalizado. Total recibidos: ${recibidos}`, 'success');
             mostrarNotificacion(`✅ ${recibidos} registros recibidos y guardados en Locker`, 'success');
             cargarInventario();
+        } else {
+            logPDFProgress(`Recepción cancelada por el usuario.`, 'warning');
         }
     }
 });
@@ -1964,4 +2105,166 @@ async function eliminarUsuario(id) {
     } catch (error) {
         mostrarNotificacion(error.message, 'error');
     }
+}
+
+function setupDragAndDrop() {
+    const setupZone = (zoneId, inputId, onFileDrop) => {
+        const zone = document.getElementById(zoneId);
+        if (!zone) return;
+
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('dragover');
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                onFileDrop(file);
+            } else {
+                mostrarNotificacion('Solo se permiten archivos PDF', 'warning');
+            }
+        });
+    };
+
+    // 1. Importar en Mis Cosas
+    setupZone('pdfImportDropZone', 'pdfImportInput', async (file) => {
+        const insumosPDF = await procesarArchivoPDF(file);
+        if (insumosPDF && insumosPDF.length > 0) {
+            const confirmar = await customConfirm(`Se encontraron ${insumosPDF.length} insumos. ¿Proceder con la importación en Mis Cosas?`);
+            if (confirmar) {
+                logPDFProgress(`Iniciando importación secuencial a Mis Cosas...`, 'system');
+                let exitos = 0;
+                for (let item of insumosPDF) {
+                    try {
+                        logPDFProgress(`Guardando: ${item.producto} (${item.codigo || 'S/C'})...`, 'info');
+                        const res = await fetch(`${API_URL}/insumos`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                nombre: item.producto, 
+                                codigo: item.codigo, 
+                                tipo: 'Importado de PDF', 
+                                esterilizado: false, 
+                                cantidad: item.cantidad, 
+                                usuarioId: usuarioActivo._id 
+                            })
+                        });
+                        if (res.ok) {
+                            exitos++;
+                            logPDFProgress(`✅ Guardado: ${item.producto}`, 'success');
+                        } else {
+                            logPDFProgress(`❌ Error al guardar: ${item.producto}`, 'error');
+                        }
+                    } catch (err) {
+                        logPDFProgress(`❌ Error de conexión para: ${item.producto}`, 'error');
+                    }
+                }
+                logPDFProgress(`Proceso de importación finalizado. Exitosos: ${exitos}/${insumosPDF.length}`, 'success');
+                mostrarNotificacion('✅ Importación completada', 'success');
+                cargarInventario();
+            } else {
+                logPDFProgress(`Importación cancelada por el usuario.`, 'warning');
+            }
+        } else if (insumosPDF && insumosPDF.length === 0) {
+            logPDFProgress('No se detectaron insumos válidos en el PDF.', 'warning');
+        }
+    });
+
+    // 2. Enviar según PDF
+    setupZone('pdfSendDropZone', 'pdfSendInput', async (file) => {
+        const insumosPDF = await procesarArchivoPDF(file);
+        if (insumosPDF && insumosPDF.length > 0) {
+            const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Mandar coincidentes a Esterilización?`);
+            if (confirmar) {
+                logPDFProgress(`Iniciando envío de insumos a Central de Esterilización...`, 'system');
+                let enviados = 0;
+                for (let item of insumosPDF) {
+                    const miInsumo = inventarioCompleto['mis_cosas']?.find(i => i.codigo === item.codigo) 
+                        || Object.values(inventarioCompleto).flat().find(i => i.codigo === item.codigo && i.ubicacionActual !== 'central_esterilizacion');
+                    
+                    if (miInsumo) {
+                        try {
+                            logPDFProgress(`Enviando ${Math.min(item.cantidad, miInsumo.cantidad)} unidades de ${miInsumo.nombre} (${miInsumo.codigo})...`, 'info');
+                            const res = await fetch(`${API_URL}/insumos/enviar-esterilizacion/${miInsumo._id}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ cantidad: Math.min(item.cantidad, miInsumo.cantidad) })
+                            });
+                            if (res.ok) {
+                                enviados++;
+                                logPDFProgress(`✅ Enviado con éxito`, 'success');
+                            } else {
+                                logPDFProgress(`❌ Fallo al enviar a central`, 'error');
+                            }
+                        } catch (err) {
+                            logPDFProgress(`❌ Error de red`, 'error');
+                        }
+                    } else {
+                        logPDFProgress(`⚠️ Insumo con código ${item.codigo} no encontrado en tu inventario activo.`, 'warning');
+                    }
+                }
+                logPDFProgress(`Proceso finalizado. Total enviados: ${enviados}`, 'success');
+                mostrarNotificacion(`✅ ${enviados} insumos enviados a esterilización`, 'success');
+                cargarInventario();
+            } else {
+                logPDFProgress(`Envío cancelado por el usuario.`, 'warning');
+            }
+        }
+    });
+
+    // 3. Recibir según PDF
+    setupZone('pdfReceiveDropZone', 'pdfReceiveInput', async (file) => {
+        const insumosPDF = await procesarArchivoPDF(file);
+        if (insumosPDF && insumosPDF.length > 0) {
+            const confirmar = await customConfirm(`Detectados ${insumosPDF.length} códigos en el PDF. ¿Recibir coincidentes desde Esterilización?`);
+            if (confirmar) {
+                logPDFProgress(`Iniciando recepción de insumos desde Central de Esterilización...`, 'system');
+                let recibidos = 0;
+                for (let item of insumosPDF) {
+                    const enCentral = inventarioCompleto['central_esterilizacion']?.filter(i => i.codigo === item.codigo);
+                    if (enCentral && enCentral.length > 0) {
+                        for (let esterilizando of enCentral) {
+                            try {
+                                logPDFProgress(`Recibiendo: ${esterilizando.nombre} (${esterilizando.codigo})...`, 'info');
+                                const res = await fetch(`${API_URL}/insumos/recibir-esterilizado/${esterilizando._id}`, {
+                                    method: 'PUT'
+                                });
+                                if (res.ok) {
+                                    recibidos++;
+                                    logPDFProgress(`✅ Recibido y guardado en Locker`, 'success');
+                                } else {
+                                    logPDFProgress(`❌ Fallo al recibir de central`, 'error');
+                                }
+                            } catch (err) {
+                                logPDFProgress(`❌ Error de red`, 'error');
+                            }
+                        }
+                    } else {
+                        logPDFProgress(`⚠️ No hay insumos pendientes en Central con el código ${item.codigo}.`, 'warning');
+                    }
+                }
+                logPDFProgress(`Proceso finalizado. Total recibidos: ${recibidos}`, 'success');
+                mostrarNotificacion(`✅ ${recibidos} registros recibidos y guardados en Locker`, 'success');
+                cargarInventario();
+            } else {
+                logPDFProgress(`Recepción cancelada por el usuario.`, 'warning');
+            }
+        }
+    });
+
+    // Evitar el comportamiento por defecto de drag & drop del navegador en la página
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+    
+    document.addEventListener('drop', (e) => {
+        e.preventDefault();
+    });
 }

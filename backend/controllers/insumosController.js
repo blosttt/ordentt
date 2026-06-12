@@ -367,96 +367,141 @@ exports.parsePdf = async (req, res) => {
         const data = await pdfParse(dataBuffer);
         const text = data.text;
 
-        // Si el usuario no ha configurado su API KEY de Gemini
-        if (!process.env.GEMINI_API_KEY) {
-            return res.status(500).json({ 
-                mensaje: 'Clave de API de Gemini no configurada', 
-                error: 'Debes añadir GEMINI_API_KEY a tus variables de entorno para usar la IA.' 
-            });
-        }
+        let parsedItems = [];
+        let usoIA = false;
+        let metodo = 'ninguno';
 
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        // Intentar con IA si hay API Key
+        if (process.env.GEMINI_API_KEY) {
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-        const prompt = `
+            const prompt = `
 Analiza el siguiente texto extraído de un documento PDF de inventario médico/odontológico.
-Extrae la lista de insumos.
-Devuelve ÚNICAMENTE un arreglo en formato JSON válido donde cada objeto tenga:
+Es una orden de esterilización de una universidad con una tabla que tiene columnas CANTIDAD, CODIGO y PRODUCTO.
+Extrae ÚNICAMENTE los insumos de la tabla (ignora encabezados, metadatos del documento como usuario, fecha, etc.).
+Devuelve ÚNICAMENTE un arreglo JSON válido donde cada objeto tenga:
 - "cantidad": número entero
-- "codigo": string (puede incluir letras y números, por ejemplo "107", "AB-12", etc.)
+- "codigo": string del código del producto
 - "producto": string con el nombre del producto
 
-No incluyas markdown (como \`\`\`json), ni saludos, ni ningún otro texto. Solo el arreglo JSON crudo.
+No incluyas markdown, ni saludos, ni ningún otro texto. Solo el arreglo JSON crudo.
+Si no encuentras insumos, devuelve un arreglo vacío [].
 
-TEXTO:
+TEXTO DEL PDF:
 ${text}
 `;
 
-        let response;
-        let retries = 3;
-        let lastError;
-        let modelosATratar = ['gemini-2.5-flash'];
-        let modeloExitoso = false;
+            const modelosATratar = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+            let lastError;
 
-        for (let i = 0; i < retries; i++) {
-            try {
-                // Alternar modelos en los reintentos
-                let modeloActual = modelosATratar[i % modelosATratar.length];
-                response = await ai.models.generateContent({
-                    model: modeloActual,
-                    contents: prompt,
-                });
-                modeloExitoso = true;
-                break; // Si tiene éxito, salir del bucle
-            } catch (err) {
-                lastError = err;
-                console.warn(`Intento ${i + 1} falló con el modelo de Gemini. Reintentando en 2 segundos...`);
-                // Esperar 2 segundos antes de reintentar
-                await new Promise(res => setTimeout(res, 2000));
+            for (let i = 0; i < modelosATratar.length; i++) {
+                try {
+                    const response = await ai.models.generateContent({
+                        model: modelosATratar[i],
+                        contents: prompt,
+                    });
+                    
+                    // Intentar parsear la respuesta
+                    let rawResponse = response.text;
+                    rawResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    parsedItems = JSON.parse(rawResponse);
+                    
+                    if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+                        usoIA = true;
+                        metodo = `IA (${modelosATratar[i]})`;
+                        break;
+                    }
+                } catch (err) {
+                    lastError = err;
+                    console.warn(`Intento ${i + 1} con ${modelosATratar[i]} falló: ${err.message}`);
+                    // Espera exponencial: 2s, 4s, 8s, 16s
+                    const espera = Math.pow(2, i + 1) * 1000;
+                    await new Promise(r => setTimeout(r, espera));
+                }
             }
-        }
 
-        let parsedItems = [];
-        let usoIA = false;
-
-        if (!modeloExitoso || !response) {
-            console.warn(`Fallback a Regex debido a fallo de IA: ${lastError ? lastError.message : 'Error desconocido'}`);
-            // Fallback al parseo Regex tradicional si la IA falla
-            const regex = /^(\d+)\s+(\S+)\s+(.+?)\s*$/gm;
-            let match;
-            while ((match = regex.exec(text)) !== null) {
-                parsedItems.push({
-                    cantidad: parseInt(match[1], 10),
-                    codigo: match[2],
-                    producto: match[3].trim()
-                });
-            }
-            if (parsedItems.length === 0) {
-                throw new Error(`La IA está saturada (${lastError ? lastError.message : 'Error'}) y el análisis tradicional no encontró insumos en este formato de PDF.`);
+            if (!usoIA) {
+                console.warn(`IA falló después de todos los intentos: ${lastError ? lastError.message : 'Error desconocido'}. Usando fallback regex.`);
             }
         } else {
-            usoIA = true;
-            let rawResponse = response.text;
-            // Limpiar posible markdown o formato indeseado del modelo
-            rawResponse = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+            console.warn('GEMINI_API_KEY no configurada. Usando parseo regex directamente.');
+        }
 
-            try {
-                parsedItems = JSON.parse(rawResponse);
-            } catch (jsonError) {
-            console.error('Error parseando la respuesta JSON de Gemini:', rawResponse);
-            return res.status(500).json({ 
-                mensaje: 'Error procesando los datos de la IA', 
-                error: jsonError.message 
+        // Fallback: Parseo con Regex si la IA no funcionó
+        if (!usoIA || parsedItems.length === 0) {
+            parsedItems = [];
+            
+            // Palabras clave a ignorar en las líneas
+            const palabrasIgnorar = /^\s*(CANTIDAD|CODIGO|PRODUCTO|TOTAL|USUARIO|FECHA|GRADO|ESTADO|DETALLE|OBSERV|No\.\s*de|Orden de|CLINICA DE)/i;
+
+            const lineas = text.split('\n');
+
+            for (const linea of lineas) {
+                const lineaTrim = linea.trim();
+                if (!lineaTrim || palabrasIgnorar.test(lineaTrim)) continue;
+
+                // Patrón 1: "cantidad  codigo  producto" (formato principal del PDF de la universidad)
+                let match = lineaTrim.match(/^\s*(\d+)\s+(\d+[A-Za-z\-]*)\s{2,}(.+?)\s*$/);
+                if (!match) {
+                    // Patrón 1b: con un solo espacio entre código y producto
+                    match = lineaTrim.match(/^\s*(\d+)\s+(\d{2,}[A-Za-z\-]*)\s+(.+?)\s*$/);
+                }
+                
+                if (match) {
+                    const cant = parseInt(match[1], 10);
+                    const cod = match[2].trim();
+                    const prod = match[3].trim();
+                    // Verificar que el producto no sea puro número y que la cantidad sea razonable
+                    if (prod && isNaN(prod) && cant > 0 && cant < 10000) {
+                        parsedItems.push({ cantidad: cant, codigo: cod, producto: prod });
+                        continue;
+                    }
+                }
+
+                // Patrón 2: separado por pipes "| cantidad | codigo | producto |"
+                if (lineaTrim.includes('|')) {
+                    const partes = lineaTrim.split('|').map(p => p.trim()).filter(p => p);
+                    if (partes.length >= 3) {
+                        const cant = parseInt(partes[0], 10);
+                        if (!isNaN(cant) && cant > 0 && cant < 10000) {
+                            parsedItems.push({ cantidad: cant, codigo: partes[1], producto: partes.slice(2).join(' ') });
+                            continue;
+                        }
+                    }
+                }
+
+                // Patrón 3: "cantidad producto" (sin código, 2+ espacios)
+                const match3 = lineaTrim.match(/^\s*(\d+)\s{2,}(.+?)\s*$/);
+                if (match3) {
+                    const cant = parseInt(match3[1], 10);
+                    const prod = match3[2].trim();
+                    if (prod && isNaN(prod) && cant > 0 && cant < 10000 && prod.length > 2) {
+                        parsedItems.push({ cantidad: cant, codigo: 'S/C', producto: prod });
+                    }
+                }
+            }
+
+            if (parsedItems.length > 0) {
+                metodo = 'Escaneo de texto (Regex)';
+            }
+        }
+
+        if (parsedItems.length === 0) {
+            return res.status(422).json({ 
+                mensaje: 'No se pudieron detectar insumos en este PDF', 
+                error: 'El formato del PDF no fue reconocido ni por la IA ni por el escaneo de texto.',
+                rawTextPreview: text.substring(0, 1000)
             });
         }
-        } // Cierra el else (usoIA)
 
         res.json({
-            mensaje: usoIA ? 'PDF procesado correctamente por Inteligencia Artificial' : 'PDF procesado por escaneo tradicional (Fallback)',
+            mensaje: `PDF procesado correctamente por ${metodo}`,
             insumosDetectados: parsedItems,
             rawTextPreview: text.substring(0, 500)
         });
     } catch (error) {
-        console.error('Error parseando PDF con IA:', error);
+        console.error('Error parseando PDF:', error);
         res.status(500).json({ mensaje: 'Error al procesar el archivo PDF', error: error.message });
     }
 };
+

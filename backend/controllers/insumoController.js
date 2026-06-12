@@ -1,4 +1,4 @@
-const Insumo = require('/models/Insumo');
+const Insumo = require('../models/Insumo');
 
 // Obtener todos los insumos
 exports.getInsumos = async (req, res) => {

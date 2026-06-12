@@ -4,9 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trazabilidad Odontológica</title>
-    <link rel="stylesheet" href="css/style.css?v=3">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Ordent - Trazabilidad Odontológica</title>
+    <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 
 <body>
@@ -30,6 +29,9 @@
                 </a>
                 <a href="#" class="sidebar-item" id="btnMenuHorario">
                     <span>📅</span> Calendario Clínicas
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuCargaPDF">
+                    <span>📄</span> Cargar mediante PDF
                 </a>
                 <a href="#" class="sidebar-item" id="btnMenuAdminPanel" style="display: none; color: var(--warning);">
                     <span>🛠️</span> Panel de Admin
@@ -249,12 +251,9 @@
                         <h2>🎒 Mis Cosas</h2>
                         <p>Tu inventario personal de instrumentación odontológica.</p>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="file" id="pdfImportInput" accept="application/pdf" style="display: none;">
-                        <button class="btn-outline" onclick="document.getElementById('pdfImportInput').click()" style="padding: 0.4rem 1rem; border-color: var(--accent); color: var(--accent);">📄 Importar desde PDF</button>
-                    </div>
                 </div>
-                <div class="card" style="padding: 1.5rem; background: white; min-height: 400px;">
+
+                <div class="card" style="padding: 1.5rem; min-height: 400px;">
                     <div class="insumos-container" id="mis_cosas" style="background: transparent; padding: 0;"></div>
                 </div>
             </div>
@@ -358,17 +357,68 @@
                         <h2>Dashboard de Insumos</h2>
                         <p>Rastrea la ubicación de tu instrumental en tiempo real.</p>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="file" id="pdfSendInput" accept="application/pdf" style="display: none;">
-                        <input type="file" id="pdfReceiveInput" accept="application/pdf" style="display: none;">
-                        <button class="btn-outline" onclick="document.getElementById('pdfSendInput').click()" style="padding: 0.4rem 1rem; border-color: var(--danger); color: var(--danger);">📤 Enviar según PDF</button>
-                        <button class="btn-outline" onclick="document.getElementById('pdfReceiveInput').click()" style="padding: 0.4rem 1rem; border-color: var(--success); color: var(--success);">📥 Recibir según PDF</button>
-                    </div>
                 </div>
+
                 <div class="dashboard-grid" id="dashboardGrid">
                     <!-- Los contenedores se cargarán dinámicamente aquí -->
                 </div>
             </div>
+
+            <!-- VISTA CARGA MEDIANTE PDF -->
+            <div id="vistaCargaPDF" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>📄 Carga mediante PDF</h2>
+                    <p>Analiza documentos de inventario u órdenes de esterilización para procesar insumos automáticamente.</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <!-- Columna 1: Zonas de Carga -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="card" style="margin-bottom: 0;">
+                            <h3 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">🎒 Importar a Mis Cosas</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Crea nuevos insumos en tu inventario a partir del texto del PDF.</p>
+                            
+                            <div class="drag-drop-zone" id="pdfImportDropZone" onclick="document.getElementById('pdfImportInput').click()" style="padding: 2rem 1rem;">
+                                <span class="icon">📄</span>
+                                <span class="title">Arrastra tu PDF de Importación aquí</span>
+                                <span class="subtitle">O haz clic para seleccionar archivo</span>
+                                <input type="file" id="pdfImportInput" accept="application/pdf" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-bottom: 0;">
+                            <h3 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">🏥 Operaciones de Esterilización</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Mueve insumos hacia o desde la Central de Esterilización usando el PDF.</p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="drag-drop-zone" id="pdfSendDropZone" onclick="document.getElementById('pdfSendInput').click()" style="padding: 1.5rem 0.5rem; border-color: var(--danger); background-color: rgba(239, 68, 68, 0.02);">
+                                    <span class="icon" style="font-size: 1.75rem;">📤</span>
+                                    <span class="title" style="font-size: 0.85rem;">Enviar según PDF</span>
+                                    <span class="subtitle" style="font-size: 0.75rem;">Arrastra o haz clic</span>
+                                    <input type="file" id="pdfSendInput" accept="application/pdf" style="display: none;">
+                                </div>
+                                
+                                <div class="drag-drop-zone" id="pdfReceiveDropZone" onclick="document.getElementById('pdfReceiveInput').click()" style="padding: 1.5rem 0.5rem; border-color: var(--success); background-color: rgba(16, 185, 129, 0.02);">
+                                    <span class="icon" style="font-size: 1.75rem;">📥</span>
+                                    <span class="title" style="font-size: 0.85rem;">Recibir según PDF</span>
+                                    <span class="subtitle" style="font-size: 0.75rem;">Arrastra o haz clic</span>
+                                    <input type="file" id="pdfReceiveInput" accept="application/pdf" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna 2: Consola de Progreso -->
+                    <div class="card" style="display: flex; flex-direction: column; margin-bottom: 0;">
+                        <div class="flex-between" style="margin-bottom: 1rem;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--text-main); margin: 0;">💻 Terminal de Progreso y Diagnóstico</h3>
+                            <button class="btn-outline" onclick="limpiarTerminalPDF()" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Limpiar</button>
+                        </div>
+                        <div id="pdfConsoleLog" class="terminal-log" style="flex: 1; min-height: 300px; max-height: 400px; overflow-y: auto;">
+                            <div class="terminal-line system-line">> Esperando archivo PDF...</div>
+                        </div>
+                    </div>
+                </div>
 
             <!-- VISTA TABLA SOLICITUDES -->
             <div id="vistaTabla" class="view-section" style="display: none;">
@@ -539,33 +589,32 @@
     <div id="modalInsumo" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Nuevo Insumo (Mis Cosas)</h2>
+                <h2>Nuevo Insumo</h2>
                 <button class="close-btn" id="closeModalInsumo">&times;</button>
             </div>
             <form id="formInsumo" class="modal-form">
                 <div class="form-group">
-                    <label>Buscar Insumo del Catálogo</label>
-                    <input list="listaCatalogo" id="catalogoInput" class="input-text" placeholder="🔍 Escribe ID o Nombre del insumo..." oninput="seleccionarDelCatalogo()" required autocomplete="off">
+                    <label>🔍 Buscar del Catálogo <span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">(opcional)</span></label>
+                    <input list="listaCatalogo" id="catalogoInput" class="input-text" placeholder="Escribe código o nombre para autocompletar..." oninput="seleccionarDelCatalogo()" autocomplete="off">
                     <datalist id="listaCatalogo"></datalist>
                 </div>
                 
-                <div id="camposPersonalizados" style="display: none; border: 1px dashed var(--border); padding: 15px; margin-top: 10px; margin-bottom: 10px; border-radius: var(--radius-md); background: var(--secondary);">
-                    <div class="form-group">
-                        <label>Nombre del insumo personalizado</label>
-                        <input type="text" id="nombre" class="input-text">
-                    </div>
-                    <div class="form-group">
-                        <label>Código Interno personalizado</label>
-                        <input type="text" id="codigo" class="input-text">
-                    </div>
-                </div>
+                <hr style="border: none; border-top: 1px dashed var(--border); margin: 0.75rem 0;">
 
                 <div class="form-group">
-                    <label>Descripción / Detalles (Opcional)</label>
-                    <textarea id="descripcion" class="input-text" rows="2" placeholder="Ej: Marca, tamaño, o si es un insumo no listado..."></textarea>
+                    <label>Nombre del Insumo <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="nombre" class="input-text" placeholder="Ej: Espejo Bucal, Bandeja Sola..." required>
                 </div>
                 <div class="form-group">
-                    <label>Cantidad (Ej: 5 espejos)</label>
+                    <label>Código <span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">(opcional)</span></label>
+                    <input type="text" id="codigo" class="input-text" placeholder="Ej: 107, AB-12...">
+                </div>
+                <div class="form-group">
+                    <label>Descripción <span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">(opcional)</span></label>
+                    <textarea id="descripcion" class="input-text" rows="2" placeholder="Marca, tamaño, notas..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad <span style="color: var(--danger);">*</span></label>
                     <input type="number" id="cantidadInsumo" class="input-text" min="1" value="1" required>
                 </div>
                 <button type="submit" class="btn-primary w-full mt-3">Guardar Insumo</button>
