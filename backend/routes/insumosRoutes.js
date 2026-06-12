@@ -5,6 +5,7 @@ const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/', insumosController.getInventario);
+router.get('/global', insumosController.getInsumosGlobales);
 router.post('/', insumosController.crearInsumo); // Ahora el create ya no toma /:ubicacion, siempre va a mis_cosas
 router.delete('/:id', insumosController.eliminarInsumo);
 router.put('/mover/:id', insumosController.moverInsumo);

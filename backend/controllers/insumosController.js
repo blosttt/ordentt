@@ -542,3 +542,14 @@ ${text}
     }
 };
 
+exports.getInsumosGlobales = async (req, res) => {
+    try {
+        const insumos = await Insumo.find()
+            .populate('usuarioId', 'nombre carnet')
+            .sort({ createdAt: -1 });
+        res.json(insumos);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener insumos globales', error: error.message });
+    }
+};
+

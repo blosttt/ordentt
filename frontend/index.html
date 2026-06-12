@@ -189,57 +189,166 @@
                 
                 <div class="config-grid" style="margin-bottom: 2rem;">
                     <div class="config-card">
-                        <h3 style="color: var(--primary);">Usuarios Registrados</h3>
-                        <p id="adminStatsUsuarios" style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">...</p>
+                        <h3 style="color: var(--primary);">👥 Usuarios Registrados</h3>
+                        <p id="adminStatsUsuarios" style="font-size: 2.25rem; font-weight: 700; margin-top: 0.5rem;">0</p>
                     </div>
                     <div class="config-card">
-                        <h3 style="color: var(--accent);">Eventos en Log</h3>
-                        <p id="adminStatsLogs" style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">...</p>
+                        <h3 style="color: var(--info);">📦 Insumos Totales</h3>
+                        <p id="adminStatsInsumos" style="font-size: 2.25rem; font-weight: 700; margin-top: 0.5rem;">0</p>
+                    </div>
+                    <div class="config-card">
+                        <h3 style="color: var(--success);">📅 Clínicas Globales</h3>
+                        <p id="adminStatsClinicas" style="font-size: 2.25rem; font-weight: 700; margin-top: 0.5rem;">0</p>
+                    </div>
+                    <div class="config-card">
+                        <h3 style="color: var(--danger);">📜 Eventos en Log</h3>
+                        <p id="adminStatsLogs" style="font-size: 2.25rem; font-weight: 700; margin-top: 0.5rem;">0</p>
                     </div>
                 </div>
 
-                <div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                        <h3 style="margin: 0;">👥 Gestión de Usuarios</h3>
-                        <button class="btn-outline" onclick="cargarUsuariosAdmin()" style="padding: 0.2rem 0.8rem; font-size: 0.8rem;">🔄 Actualizar</button>
-                    </div>
-                    <div class="tabla-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>CARNET</th>
-                                    <th>NOMBRE</th>
-                                    <th>ROL</th>
-                                    <th>FECHA REGISTRO</th>
-                                    <th>ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaUsuariosAdminBody">
-                                <!-- Carga dinámica -->
-                            </tbody>
-                        </table>
+                <!-- Sub-Navegación Admin -->
+                <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1.5rem; overflow-x: auto; white-space: nowrap;">
+                    <button class="btn-primary admin-tab-btn" data-tab="usuarios" onclick="cambiarPestañaAdmin('usuarios')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">👥 Usuarios</button>
+                    <button class="btn-outline admin-tab-btn" data-tab="insumos" onclick="cambiarPestañaAdmin('insumos')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📦 Insumos Globales</button>
+                    <button class="btn-outline admin-tab-btn" data-tab="clinicas" onclick="cambiarPestañaAdmin('clinicas')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📅 Clínicas</button>
+                    <button class="btn-outline admin-tab-btn" data-tab="logs" onclick="cambiarPestañaAdmin('logs')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📜 Auditoría</button>
+                </div>
+
+                <!-- Tab content containers -->
+                <div id="adminTab-usuarios" class="admin-tab-content">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+                        <!-- Tabla de Usuarios -->
+                        <div class="card" style="padding: 1.5rem; margin-bottom: 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                                <h3 style="margin: 0; font-size: 1.1rem;">👥 Gestión de Usuarios</h3>
+                                <button class="btn-outline" onclick="cargarUsuariosAdmin()" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">🔄 Actualizar</button>
+                            </div>
+                            <div class="tabla-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>CARNET</th>
+                                            <th>NOMBRE</th>
+                                            <th>ROL</th>
+                                            <th>FECHA REGISTRO</th>
+                                            <th>ACCIONES</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaUsuariosAdminBody">
+                                        <!-- Carga dinámica -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Registrar Nuevo Usuario -->
+                        <div class="card" style="padding: 1.5rem; margin-bottom: 0;">
+                            <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">➕ Registrar Nuevo Usuario</h3>
+                            <form id="formCrearUsuarioAdmin" onsubmit="crearUsuarioAdmin(event)" style="display: flex; flex-direction: column; gap: 0.85rem;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.8rem;">Carnet / ID</label>
+                                    <input type="text" id="adminNewCarnet" class="input-text" placeholder="Ej: 21087" required style="font-size: 0.85rem; padding: 0.5rem;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.8rem;">Nombre Completo</label>
+                                    <input type="text" id="adminNewNombre" class="input-text" placeholder="Ej: Juan Pérez" required style="font-size: 0.85rem; padding: 0.5rem;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.8rem;">Contraseña</label>
+                                    <input type="password" id="adminNewPassword" class="input-text" placeholder="Contraseña de acceso" required style="font-size: 0.85rem; padding: 0.5rem;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.8rem;">Rol del Usuario</label>
+                                    <select id="adminNewRol" class="input-select" required style="font-size: 0.85rem; padding: 0.5rem;">
+                                        <option value="usuario">Usuario Estudiante</option>
+                                        <option value="admin">Administrador</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn-primary w-full" style="margin-top: 0.5rem; height: 38px;">Crear Cuenta</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card" style="padding: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                        <h3 style="margin: 0;">📜 Historial de Actividad (Logs)</h3>
-                        <button class="btn-outline" onclick="cargarLogsAdmin()" style="padding: 0.2rem 0.8rem; font-size: 0.8rem;">🔄 Actualizar</button>
+                <div id="adminTab-insumos" class="admin-tab-content" style="display: none;">
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <h3 style="margin: 0; font-size: 1.1rem; min-width: 150px;">📦 Inventario Global</h3>
+                            <div style="display: flex; gap: 0.5rem; flex: 1; min-width: 250px; justify-content: flex-end;">
+                                <input type="text" id="searchInsumosGlobal" placeholder="Buscar por nombre, código o propietario..." class="input-text" oninput="filtrarInsumosGlobales()" style="max-width: 350px; margin: 0; height: 35px; font-size: 0.85rem;">
+                                <button class="btn-outline" onclick="cargarInsumosGlobalesAdmin()" style="padding: 0 0.75rem; height: 35px; font-size: 0.85rem;">🔄</button>
+                            </div>
+                        </div>
+                        <div class="tabla-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>INSUMO</th>
+                                        <th>CÓDIGO</th>
+                                        <th>CANT</th>
+                                        <th>UBICACIÓN</th>
+                                        <th>PROPIETARIO</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaInsumosGlobalesBody">
+                                    <!-- Carga dinámica -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="tabla-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>FECHA / HORA</th>
-                                    <th>USUARIO</th>
-                                    <th>ACCIÓN</th>
-                                    <th>DESCRIPCIÓN</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaLogsBody">
-                                <!-- Carga dinámica -->
-                            </tbody>
-                        </table>
+                </div>
+
+                <div id="adminTab-clinicas" class="admin-tab-content" style="display: none;">
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                            <h3 style="margin: 0; font-size: 1.1rem;">📅 Clínicas del Sistema</h3>
+                            <button class="btn-outline" onclick="cargarClinicasAdmin()" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">🔄 Actualizar</button>
+                        </div>
+                        <div class="tabla-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>CLÍNICA</th>
+                                        <th>DÍAS Y HORARIOS</th>
+                                        <th>CANT IMPLEMENTOS</th>
+                                        <th>ESTADO</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaClinicasAdminBody">
+                                    <!-- Carga dinámica -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adminTab-logs" class="admin-tab-content" style="display: none;">
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <h3 style="margin: 0; font-size: 1.1rem; min-width: 150px;">📜 Historial de Actividad</h3>
+                            <div style="display: flex; gap: 0.5rem; flex: 1; min-width: 250px; justify-content: flex-end;">
+                                <input type="text" id="searchLogsGlobal" placeholder="Filtrar por usuario, acción..." class="input-text" oninput="filtrarLogsAdmin()" style="max-width: 250px; margin: 0; height: 35px; font-size: 0.85rem;">
+                                <button class="btn-danger" onclick="limpiarHistorialLogs()" style="padding: 0 0.75rem; height: 35px; font-size: 0.85rem;">🗑️ Limpiar Historial</button>
+                                <button class="btn-outline" onclick="cargarLogsAdmin()" style="padding: 0 0.75rem; height: 35px; font-size: 0.85rem;">🔄</button>
+                            </div>
+                        </div>
+                        <div class="tabla-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>FECHA / HORA</th>
+                                        <th>USUARIO</th>
+                                        <th>ACCIÓN</th>
+                                        <th>DESCRIPCIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaLogsBody">
+                                    <!-- Carga dinámica -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

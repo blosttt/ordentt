@@ -392,8 +392,8 @@ function setupNavigation() {
             e.preventDefault();
             hideAll();
             if (vistaAdmin) vistaAdmin.style.display = 'block';
-            cargarLogsAdmin();
-            cargarUsuariosAdmin();
+            cargarLogsAdmin(); // Carga todos los stats e inicializa los logs
+            cambiarPestañaAdmin('usuarios'); // Abre por defecto la pestaña de usuarios
         };
     }
 
@@ -1813,31 +1813,27 @@ async function cargarLogsAdmin() {
     try {
         const res = await fetch(`${API_URL}/logs`);
         const logs = await res.json();
-        const tbody = document.getElementById('tablaLogsBody');
-        tbody.innerHTML = '';
+        adminLogsGlobal = logs;
 
-        if (!logs || logs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay registros de actividad.</td></tr>';
-        } else {
-            logs.forEach(log => {
-                const tr = document.createElement('tr');
-                const fecha = new Date(log.createdAt).toLocaleString();
-                tr.innerHTML = `
-                    <td style="color:var(--text-muted); font-size:0.85rem;">${fecha}</td>
-                    <td style="font-weight:bold; color:var(--primary);">${log.usuario}</td>
-                    <td><span class="badge" style="background:var(--secondary-hover);">${log.accion}</span></td>
-                    <td>${log.descripcion}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        
+        renderizarTablaLogs(logs);
+
         document.getElementById('adminStatsLogs').textContent = logs.length;
-        
+
         // Cargar stats de usuarios
         const resUsers = await fetch(`${API_URL}/usuarios`);
         const users = await resUsers.json();
         document.getElementById('adminStatsUsuarios').textContent = users.length || 0;
+
+        // Cargar stats de clínicas
+        const resClinics = await fetch(`${API_URL}/clinicas`);
+        const dataClinics = await resClinics.json();
+        const clinicas = dataClinics.clinicas || [];
+        document.getElementById('adminStatsClinicas').textContent = clinicas.length;
+
+        // Cargar stats de insumos
+        const resInsumos = await fetch(`${API_URL}/insumos/global`);
+        const insumosGlobales = await resInsumos.json();
+        document.getElementById('adminStatsInsumos').textContent = insumosGlobales.length;
 
     } catch (error) {
         console.error('Error cargando logs:', error);
@@ -2368,5 +2364,292 @@ function setupDragAndDrop() {
     
     document.addEventListener('drop', (e) => {
         e.preventDefault();
+    });
+}
+
+// ==========================================
+// EXPANDED ADMIN PANEL FUNCTIONS
+// ==========================================
+let adminInsumosGlobales = [];
+let adminLogsGlobal = [];
+
+function cambiarPestañaAdmin(tabName) {
+    // Ocultar todas las sub-vistas del admin
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    
+    // Cambiar clases de los botones de sub-navegación
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabName) {
+            btn.className = 'btn-primary admin-tab-btn';
+        } else {
+            btn.className = 'btn-outline admin-tab-btn';
+        }
+    });
+
+    // Mostrar sub-vista activa
+    const activeTab = document.getElementById(`adminTab-${tabName}`);
+    if (activeTab) activeTab.style.display = 'block';
+
+    // Cargar datos según corresponda
+    if (tabName === 'usuarios') {
+        cargarUsuariosAdmin();
+    } else if (tabName === 'insumos') {
+        cargarInsumosGlobalesAdmin();
+    } else if (tabName === 'clinicas') {
+        cargarClinicasAdmin();
+    } else if (tabName === 'logs') {
+        cargarLogsAdmin();
+    }
+}
+
+async function crearUsuarioAdmin(e) {
+    e.preventDefault();
+    const carnet = document.getElementById('adminNewCarnet').value.trim();
+    const nombre = document.getElementById('adminNewNombre').value.trim();
+    const password = document.getElementById('adminNewPassword').value;
+    const rol = document.getElementById('adminNewRol').value;
+
+    if (!carnet || !nombre || !password || !rol) {
+        return mostrarNotificacion('⚠️ Faltan campos requeridos', 'warning');
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/usuarios/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ carnet, nombre, password, rol })
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.mensaje || 'Error al registrar usuario');
+        }
+
+        mostrarNotificacion('✅ Usuario creado correctamente', 'success');
+        document.getElementById('formCrearUsuarioAdmin').reset();
+        cargarUsuariosAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function cargarInsumosGlobalesAdmin() {
+    try {
+        const res = await fetch(`${API_URL}/insumos/global`);
+        if (!res.ok) throw new Error('Error al obtener insumos globales');
+        
+        adminInsumosGlobales = await res.json();
+        
+        // Actualizar contador en tarjeta
+        const elStat = document.getElementById('adminStatsInsumos');
+        if (elStat) elStat.textContent = adminInsumosGlobales.length;
+
+        renderizarTablaInsumosGlobales(adminInsumosGlobales);
+    } catch (error) {
+        console.error('Error cargando insumos globales:', error);
+        mostrarNotificacion('No se pudieron cargar los insumos globales', 'error');
+    }
+}
+
+function renderizarTablaInsumosGlobales(insumos) {
+    const tbody = document.getElementById('tablaInsumosGlobalesBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    if (insumos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1rem;">No se encontraron insumos.</td></tr>';
+        return;
+    }
+
+    insumos.forEach(insumo => {
+        const tr = document.createElement('tr');
+        const propietario = insumo.usuarioId ? `${insumo.usuarioId.nombre} (${insumo.usuarioId.carnet})` : 'Desconocido';
+        const ubicacion = insumo.ubicacionActual === 'mis_cosas' ? '🎒 Mis Cosas' : 
+                          insumo.ubicacionActual === 'central_esterilizacion' ? '🏥 Esterilización' : 
+                          `🗂️ ${insumo.ubicacionActual.replace('_', ' ').toUpperCase()}`;
+        
+        tr.innerHTML = `
+            <td><strong>${insumo.nombre}</strong></td>
+            <td><code>${insumo.codigo || 'N/A'}</code></td>
+            <td>${insumo.cantidad}</td>
+            <td>${ubicacion}</td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);">${propietario}</td>
+            <td>
+                <button class="btn-outline text-danger" onclick="eliminarInsumoGlobal('${insumo._id}')" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; border-color: var(--danger);" title="Eliminar Insumo">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filtrarInsumosGlobales() {
+    const query = document.getElementById('searchInsumosGlobal').value.toLowerCase().trim();
+    if (!query) {
+        renderizarTablaInsumosGlobales(adminInsumosGlobales);
+        return;
+    }
+
+    const filtrados = adminInsumosGlobales.filter(ins => {
+        const nombre = ins.nombre.toLowerCase();
+        const codigo = (ins.codigo || '').toLowerCase();
+        const propietarioNombre = ins.usuarioId ? ins.usuarioId.nombre.toLowerCase() : '';
+        const propietarioCarnet = ins.usuarioId ? ins.usuarioId.carnet.toLowerCase() : '';
+
+        return nombre.includes(query) || codigo.includes(query) || propietarioNombre.includes(query) || propietarioCarnet.includes(query);
+    });
+
+    renderizarTablaInsumosGlobales(filtrados);
+}
+
+async function eliminarInsumoGlobal(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este insumo de la base de datos?')) return;
+
+    try {
+        const res = await fetch(`${API_URL}/insumos/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) throw new Error('Error al eliminar el insumo');
+        
+        mostrarNotificacion('✅ Insumo eliminado de forma global', 'success');
+        cargarInsumosGlobalesAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function cargarClinicasAdmin() {
+    try {
+        const res = await fetch(`${API_URL}/clinicas`);
+        if (!res.ok) throw new Error('Error al obtener clínicas');
+        
+        const data = await res.json();
+        const clinicas = data.clinicas || [];
+        
+        // Actualizar contador en tarjeta
+        const elStat = document.getElementById('adminStatsClinicas');
+        if (elStat) elStat.textContent = clinicas.length;
+
+        const tbody = document.getElementById('tablaClinicasAdminBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (clinicas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1rem;">No hay clínicas registradas en el sistema.</td></tr>';
+            return;
+        }
+
+        clinicas.forEach(c => {
+            const tr = document.createElement('tr');
+            
+            // Formatear turnos
+            const horarios = c.diasHorarios.map(dh => `${dh.dia.toUpperCase()}: ${dh.horaInicio} - ${dh.horaFin}`).join('<br>');
+            const implementosCount = c.implementosRequeridos ? c.implementosRequeridos.length : 0;
+            
+            tr.innerHTML = `
+                <td><strong>${c.nombre}</strong></td>
+                <td style="font-size: 0.85rem; line-height: 1.3;">${horarios || 'Sin horarios'}</td>
+                <td>${implementosCount} implementos</td>
+                <td>
+                    <span class="badge ${c.activa ? 'badge-success' : 'badge-danger'}" style="cursor: pointer;" onclick="toggleEstadoClinicaAdmin('${c._id}')">
+                        ${c.activa ? 'Activa' : 'Inactiva'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-outline text-danger" onclick="eliminarClinicaAdmin('${c._id}')" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; border-color: var(--danger);" title="Eliminar Clínica">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error('Error cargando clínicas admin:', error);
+        mostrarNotificacion('Error al cargar clínicas', 'error');
+    }
+}
+
+async function toggleEstadoClinicaAdmin(id) {
+    try {
+        const res = await fetch(`${API_URL}/clinicas/${id}/toggle`, {
+            method: 'PUT'
+        });
+        if (!res.ok) throw new Error('Error al cambiar estado de la clínica');
+        
+        mostrarNotificacion('✅ Estado de clínica actualizado', 'success');
+        cargarClinicasAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function eliminarClinicaAdmin(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta clínica? Se perderá toda la programación de horarios.')) return;
+
+    try {
+        const res = await fetch(`${API_URL}/clinicas/${id}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Error al eliminar clínica');
+
+        mostrarNotificacion('✅ Clínica eliminada', 'success');
+        cargarClinicasAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function limpiarHistorialLogs() {
+    if (!confirm('¿Estás seguro de que deseas borrar todo el historial de auditoría? Esta acción es irreversible.')) return;
+
+    try {
+        const res = await fetch(`${API_URL}/logs`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Error al vaciar los logs');
+
+        mostrarNotificacion('✅ Historial de auditoría vaciado correctamente', 'success');
+        cargarLogsAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+function filtrarLogsAdmin() {
+    const query = document.getElementById('searchLogsGlobal').value.toLowerCase().trim();
+    if (!query) {
+        renderizarTablaLogs(adminLogsGlobal);
+        return;
+    }
+
+    const filtrados = adminLogsGlobal.filter(log => {
+        const usuario = log.usuario.toLowerCase();
+        const accion = log.accion.toLowerCase();
+        const desc = log.descripcion.toLowerCase();
+        return usuario.includes(query) || accion.includes(query) || desc.includes(query);
+    });
+
+    renderizarTablaLogs(filtrados);
+}
+
+function renderizarTablaLogs(logs) {
+    const tbody = document.getElementById('tablaLogsBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1rem;">No se encontraron registros de actividad.</td></tr>';
+        return;
+    }
+
+    logs.forEach(log => {
+        const tr = document.createElement('tr');
+        const fecha = new Date(log.createdAt).toLocaleString();
+        tr.innerHTML = `
+            <td style="color:var(--text-muted); font-size:0.85rem;">${fecha}</td>
+            <td style="font-weight:bold; color:var(--primary);">${log.usuario}</td>
+            <td><span class="badge" style="background:var(--secondary-hover);">${log.accion}</span></td>
+            <td>${log.descripcion}</td>
+        `;
+        tbody.appendChild(tr);
     });
 }

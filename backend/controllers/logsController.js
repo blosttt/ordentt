@@ -18,3 +18,12 @@ exports.createLog = async (req, res) => {
         res.status(500).json({ mensaje: 'Error al crear log', error: error.message });
     }
 };
+
+exports.clearLogs = async (req, res) => {
+    try {
+        await Log.deleteMany({});
+        res.json({ mensaje: 'Historial de auditoría borrado correctamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al limpiar logs', error: error.message });
+    }
+};
