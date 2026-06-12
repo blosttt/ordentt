@@ -957,7 +957,7 @@ async function guardarSolicitud(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 consecutivo,
-                estado: 'EN_ESTERILIZACION',
+                estado: 'SOLICITADO',
                 insumoId: estData.insumo._id, // Usamos el ID del (posiblemente nuevo) insumo
                 insumoNombre: insumoEncontrado.nombre,
                 insumoCodigo: insumoEncontrado.codigo,
@@ -2423,6 +2423,8 @@ function cambiarPestañaAdmin(tabName) {
         cargarInsumosGlobalesAdmin();
     } else if (tabName === 'clinicas') {
         cargarClinicasAdmin();
+    } else if (tabName === 'central') {
+        cargarCentralAdmin();
     } else if (tabName === 'logs') {
         cargarLogsAdmin();
     }
@@ -2678,4 +2680,119 @@ function renderizarTablaLogs(logs) {
         `;
         tbody.appendChild(tr);
     });
+}
+
+// ==========================================
+// CENTRAL DE ESTERILIZACIÓN (ADMIN)
+// ==========================================
+let adminCentralSolicitudes = [];
+
+async function cargarCentralAdmin() {
+    try {
+        const res = await fetch(`${API_URL}/solicitudes`);
+        if (!res.ok) throw new Error('Error al obtener solicitudes');
+        
+        const data = await res.json();
+        adminCentralSolicitudes = data;
+        
+        renderizarTablaCentralAdmin(adminCentralSolicitudes);
+    } catch (error) {
+        console.error('Error cargando central:', error);
+        mostrarNotificacion('Error al cargar solicitudes de la central', 'error');
+    }
+}
+
+function renderizarTablaCentralAdmin(solicitudesList) {
+    const tbody = document.getElementById('tablaCentralAdminBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    
+    // Filtrar solicitudes activas (no entregadas)
+    const activas = solicitudesList.filter(s => s.estado !== 'ENTREGADO');
+
+    if (activas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1rem;">No hay solicitudes activas en la Central de Esterilización.</td></tr>';
+        return;
+    }
+
+    activas.forEach(s => {
+        const tr = document.createElement('tr');
+        const alumno = s.usuario ? `${s.usuario.nombre} (${s.usuario.carnet})` : 'Desconocido';
+        const llegada = s.devolucionEstimada ? new Date(s.devolucionEstimada).toLocaleString() : '-';
+        
+        let actionsHtml = '';
+        if (s.estado === 'SOLICITADO') {
+            actionsHtml = `
+                <button class="btn-primary" onclick="iniciarEsterilizacionCentral('${s.consecutivo}')" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; background: var(--info); border: none; border-radius: var(--radius-md);">
+                    📥 Iniciar Proceso
+                </button>
+            `;
+        } else if (s.estado === 'EN_ESTERILIZACION') {
+            actionsHtml = `
+                <button class="btn-primary" onclick="entregarInsumoCentral('${s.consecutivo}', '${s.insumoId}')" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; background: var(--success); border: none; border-radius: var(--radius-md);">
+                    ✅ Entregar
+                </button>
+            `;
+        }
+
+        const badgeClass = s.estado === 'SOLICITADO' ? 'badge-danger' : 'badge-warning';
+        
+        tr.innerHTML = `
+            <td><strong>${s.consecutivo}</strong></td>
+            <td style="font-size: 0.85rem;">${alumno}</td>
+            <td><strong>${s.insumoNombre}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">(${s.insumoCodigo})</span></td>
+            <td>${s.cantidad}</td>
+            <td><span class="badge ${badgeClass}">${s.estado.replace('_', ' ')}</span></td>
+            <td style="font-size: 0.85rem;">${llegada}</td>
+            <td>${actionsHtml}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filtrarCentralAdmin() {
+    const query = document.getElementById('searchCentralGlobal').value.toLowerCase().trim();
+    if (!query) {
+        renderizarTablaCentralAdmin(adminCentralSolicitudes);
+        return;
+    }
+
+    const filtrados = adminCentralSolicitudes.filter(s => {
+        const alumnoNombre = s.usuario ? s.usuario.nombre.toLowerCase() : '';
+        const alumnoCarnet = s.usuario ? s.usuario.carnet.toLowerCase() : '';
+        const insumo = s.insumoNombre.toLowerCase();
+        const codigo = s.insumoCodigo.toLowerCase();
+        const consecutivo = s.consecutivo.toLowerCase();
+
+        return alumnoNombre.includes(query) || alumnoCarnet.includes(query) || insumo.includes(query) || codigo.includes(query) || consecutivo.includes(query);
+    });
+
+    renderizarTablaCentralAdmin(filtrados);
+}
+
+async function iniciarEsterilizacionCentral(consecutivo) {
+    try {
+        const res = await fetch(`${API_URL}/solicitudes/${consecutivo}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'EN_ESTERILIZACION' })
+        });
+        if (!res.ok) throw new Error('Error al actualizar estado');
+
+        mostrarNotificacion('✅ Proceso de esterilización iniciado', 'success');
+        cargarCentralAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function entregarInsumoCentral(consecutivo, insumoId) {
+    try {
+        await recibirSolicitud(consecutivo, insumoId);
+        mostrarNotificacion('✅ Insumo entregado y devuelto al alumno', 'success');
+        cargarCentralAdmin();
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
 }

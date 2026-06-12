@@ -211,6 +211,7 @@
                     <button class="btn-primary admin-tab-btn" data-tab="usuarios" onclick="cambiarPestañaAdmin('usuarios')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">👥 Usuarios</button>
                     <button class="btn-outline admin-tab-btn" data-tab="insumos" onclick="cambiarPestañaAdmin('insumos')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📦 Insumos Globales</button>
                     <button class="btn-outline admin-tab-btn" data-tab="clinicas" onclick="cambiarPestañaAdmin('clinicas')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📅 Clínicas</button>
+                    <button class="btn-outline admin-tab-btn" data-tab="central" onclick="cambiarPestañaAdmin('central')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">🏥 Central</button>
                     <button class="btn-outline admin-tab-btn" data-tab="logs" onclick="cambiarPestañaAdmin('logs')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📜 Auditoría</button>
                 </div>
 
@@ -345,6 +346,36 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tablaLogsBody">
+                                    <!-- Carga dinámica -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adminTab-central" class="admin-tab-content" style="display: none;">
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <h3 style="margin: 0; font-size: 1.1rem; min-width: 150px;">🏥 Gestión de la Central</h3>
+                            <div style="display: flex; gap: 0.5rem; flex: 1; min-width: 250px; justify-content: flex-end;">
+                                <input type="text" id="searchCentralGlobal" placeholder="Buscar por alumno, insumo, consecutivo..." class="input-text" oninput="filtrarCentralAdmin()" style="max-width: 300px; margin: 0; height: 35px; font-size: 0.85rem;">
+                                <button class="btn-outline" onclick="cargarCentralAdmin()" style="padding: 0 0.75rem; height: 35px; font-size: 0.85rem;">🔄</button>
+                            </div>
+                        </div>
+                        <div class="tabla-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>CONSECUTIVO</th>
+                                        <th>ALUMNO (CARNET)</th>
+                                        <th>INSUMO (CÓDIGO)</th>
+                                        <th>CANT</th>
+                                        <th>ESTADO</th>
+                                        <th>LLEGADA ESTIMADA</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaCentralAdminBody">
                                     <!-- Carga dinámica -->
                                 </tbody>
                             </table>
