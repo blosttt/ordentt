@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ordent - Trazabilidad Odontológica</title>
-    <link rel="stylesheet" href="css/style.css?v=4">
+    <title>Ordent — Trazabilidad Odontológica</title>
+    <meta name="description" content="Sistema de trazabilidad odontológica: inventario, esterilización y calendario clínico en tiempo real.">
+    <link rel="stylesheet" href="css/style.css?v=5">
 </head>
 
 <body>
@@ -16,28 +17,40 @@
             <div class="sidebar-logo" id="btnLogoHome">
                 <h2>🦷 Ordent Tracker</h2>
             </div>
-            
+
             <nav class="sidebar-menu">
+                <div class="sidebar-section-label">Principal</div>
+
                 <a href="#" class="sidebar-item active" id="btnMenuHome">
-                    <span>🏠</span> Inicio
+                    <span class="icon">🏠</span> Inicio
                 </a>
                 <a href="#" class="sidebar-item" id="btnMenuMisCosas">
-                    <span>🎒</span> Mis Cosas
+                    <span class="icon">🎒</span> Mis Cosas
                 </a>
                 <a href="#" class="sidebar-item" id="btnMenuDashboard">
-                    <span>🗂️</span> Dashboard Insumos
+                    <span class="icon">🗂️</span> Dashboard Insumos
                 </a>
+
+                <div class="sidebar-section-label" style="margin-top: 1rem;">Gestión</div>
+
                 <a href="#" class="sidebar-item" id="btnMenuHorario">
-                    <span>📅</span> Calendario Clínicas
+                    <span class="icon">📅</span> Calendario Clínicas
+                </a>
+                <a href="#" class="sidebar-item" id="btnMenuTabla">
+                    <span class="icon">📋</span> Solicitudes
+                    <span class="sidebar-badge" id="sidebarBadgeSolicitudes">0</span>
                 </a>
                 <a href="#" class="sidebar-item" id="btnMenuCargaPDF">
-                    <span>📄</span> Cargar mediante PDF
+                    <span class="icon">📄</span> Cargar PDF
                 </a>
-                <a href="#" class="sidebar-item" id="btnMenuAdminPanel" style="display: none; color: var(--warning);">
-                    <span>🛠️</span> Panel de Admin
+
+                <div class="sidebar-section-label" style="margin-top: 1rem;">Cuenta</div>
+
+                <a href="#" class="sidebar-item sidebar-item-admin" id="btnMenuAdminPanel" style="display: none;">
+                    <span class="icon">🛠️</span> Panel de Admin
                 </a>
-                <a href="#" class="sidebar-item" id="btnMenuMisDatos" style="margin-top: 1rem;">
-                    <span>👤</span> Mis Datos
+                <a href="#" class="sidebar-item" id="btnMenuMisDatos">
+                    <span class="icon">👤</span> Mi Perfil
                 </a>
             </nav>
         </aside>
@@ -46,22 +59,34 @@
             <!-- Top Header Navigation -->
             <header class="top-header">
                 <button class="mobile-menu-btn" id="btnMobileMenu">☰</button>
-                
+
+                <!-- Breadcrumb / Page Title -->
+                <div class="header-breadcrumb">
+                    <div>
+                        <div class="page-title" id="headerPageTitle">Inicio</div>
+                    </div>
+                </div>
+
                 <div class="header-actions">
+                    <!-- Session expiry warning -->
+                    <button class="session-warning-banner" id="sessionWarningBanner" title="Tu sesión vence pronto">
+                        ⏰ <span id="sessionWarningText">Sesión por vencer</span>
+                    </button>
+
                     <button class="dark-mode-toggle" id="btnToggleTheme" title="Cambiar tema">🌙</button>
-                    <button id="btnAgregarInsumoHeader" class="btn-primary" style="padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem;">+ Nuevo Insumo</button>
-                    
+                    <button id="btnAgregarInsumoHeader" class="btn-primary btn-sm" style="border-radius: 20px;">+ Nuevo Insumo</button>
+
                     <div class="profile-dropdown-container">
-                        <div class="avatar-trigger" id="avatarTrigger" style="background-color: #f1f5f9; color: var(--primary); border: 1px solid var(--border);">
+                        <div class="avatar-trigger" id="avatarTrigger" style="background-color: var(--background); color: var(--primary); border: 1px solid var(--border);">
                             U
                         </div>
-                        
+
                         <div class="dropdown-menu" id="profileDropdown">
                             <div class="dropdown-header">
                                 <strong id="lblUsuarioDropdown">Usuario</strong>
-                                <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Dentista</span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); display: block;" id="lblRolDropdown">Dentista</span>
                             </div>
-                            
+
                             <div class="dropdown-submenu-container">
                                 <a href="#" class="dropdown-item submenu-trigger">⚙️ Configuraciones <span>▶</span></a>
                                 <div class="dropdown-submenu">
@@ -70,7 +95,7 @@
                                     <a href="#" class="dropdown-item" id="btnMenuConfContenedores">Contenedores</a>
                                 </div>
                             </div>
-                            
+
                             <div class="dropdown-divider"></div>
                             <a href="#" class="dropdown-item text-danger" id="btnLogoutDropdown">🚪 Cerrar Sesión</a>
                         </div>
@@ -83,62 +108,77 @@
             
             <!-- VISTA HOME (Mainpage) -->
             <div id="vistaHome" class="view-section" style="display: none;">
-                <div class="view-header" style="border-bottom: none; margin-bottom: 1.5rem;">
-                    <p style="text-transform: uppercase; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); letter-spacing: 1px;">Resumen de actividad</p>
-                    <h2 id="homeWelcomeTitle" style="font-size: 2rem; font-weight: 700; color: var(--text-main); margin-top: 0.25rem;">Buen día ✨</h2>
+                <div class="view-header" style="border-bottom: none; margin-bottom: 1.75rem;">
+                    <p style="text-transform: uppercase; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.1em;">Resumen de actividad</p>
+                    <h2 id="homeWelcomeTitle" style="font-size: 1.9rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem; font-family: 'Outfit', sans-serif; letter-spacing: -0.02em;">Buen día ✨</h2>
                 </div>
 
-                <!-- Stats Limpios (SaaS) -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                    <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
-                        <h3 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Insumos Totales</h3>
-                        <p id="homeStatTotales" style="font-size: 2.25rem; font-weight: 700; color: var(--text-main); margin-top: 0.5rem; line-height: 1;">0</p>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">En todo el inventario</p>
+                <!-- Stat Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-card-label">📦 Insumos Totales</div>
+                        <div id="homeStatTotales" class="stat-card-value">0</div>
+                        <div class="stat-card-footer">En todo el inventario</div>
+                        <div class="stat-card-accent">📦</div>
                     </div>
-                    <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
-                        <h3 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">En Esterilización</h3>
-                        <p id="homeStatEsteril" style="font-size: 2.25rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem; line-height: 1;">0</p>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Proceso actual</p>
+                    <div class="stat-card">
+                        <div class="stat-card-label" style="color: var(--info);">🔬 En Esterilización</div>
+                        <div id="homeStatEsteril" class="stat-card-value" style="color: var(--primary);">0</div>
+                        <div class="stat-card-footer">Proceso activo en central</div>
+                        <div class="stat-card-accent">🔬</div>
                     </div>
-                    <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
-                        <h3 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Listos / En Locker</h3>
-                        <p id="homeStatListos" style="font-size: 2.25rem; font-weight: 700; color: var(--success); margin-top: 0.5rem; line-height: 1;">0</p>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Disponibles para uso</p>
+                    <div class="stat-card">
+                        <div class="stat-card-label" style="color: var(--success);">✅ Listos / En Locker</div>
+                        <div id="homeStatListos" class="stat-card-value" style="color: var(--success);">0</div>
+                        <div class="stat-card-footer">Disponibles para uso clínico</div>
+                        <div class="stat-card-accent">✅</div>
                     </div>
                 </div>
 
-                <div class="home-split-layout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-                    <!-- Mitad 1: Panel Principal -->
-                    <div class="home-half-section">
-                        <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem;">
-                            <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem; font-weight: 600;">Accesos Rápidos</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                <div class="home-card" id="cardHomeMisCosas" style="background: var(--background); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;">
-                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                                        <div style="background: #ffffff; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); font-size: 1.2rem;">🎒</div>
-                                        <h3 style="color: var(--text-main); font-size: 1rem; margin: 0;">Mis Cosas</h3>
-                                    </div>
-                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Gestiona tu inventario base, agrega y edita.</p>
+                <div class="home-split-layout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <!-- Accesos Rápidos -->
+                    <div>
+                        <div class="card" style="padding: 1.5rem; margin-bottom: 0;">
+                            <h3 style="margin-bottom: 1.1rem; color: var(--text-main); font-size: 1rem; font-weight: 700; font-family: 'Outfit', sans-serif;">⚡ Accesos Rápidos</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+                                <div class="home-card" id="cardHomeMisCosas">
+                                    <div class="home-card-icon">🎒</div>
+                                    <h3 style="color: var(--text-main); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem;">Mis Cosas</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.82rem;">Gestiona tu inventario base, agrega y edita.</p>
                                 </div>
-                                <div class="home-card" id="cardHomeDashboard" style="background: var(--background); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;">
-                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                                        <div style="background: #ffffff; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); font-size: 1.2rem;">🗂️</div>
-                                        <h3 style="color: var(--text-main); font-size: 1rem; margin: 0;">Dashboard Insumos</h3>
-                                    </div>
-                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Rastrea la ubicación en tiempo real.</p>
+                                <div class="home-card" id="cardHomeDashboard">
+                                    <div class="home-card-icon">🗂️</div>
+                                    <h3 style="color: var(--text-main); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem;">Dashboard Insumos</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.82rem;">Rastrea la ubicación en tiempo real.</p>
+                                </div>
+                                <div class="home-card" id="cardHomeSolicitudes">
+                                    <div class="home-card-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">📋</div>
+                                    <h3 style="color: var(--text-main); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem;">Solicitudes</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.82rem;">Historial de envíos a esterilización.</p>
+                                </div>
+                                <div class="home-card" id="cardHomePDF">
+                                    <div class="home-card-icon" style="background: linear-gradient(135deg, var(--info), #1d4ed8);">📄</div>
+                                    <h3 style="color: var(--text-main); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem;">Cargar PDF</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.82rem;">Importa insumos desde un documento.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mitad 2: Status Lateral -->
-                    <div class="home-half-section">
-                        <div class="config-card" style="border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 1.5rem; height: 100%;">
-                            <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem; font-weight: 600;">Central de Esterilización</h3>
-                            <div class="info-card" style="background-color: var(--background); border-left: 3px solid var(--primary); padding: 1rem; border-radius: var(--radius-md);">
-                                <h4 style="color: var(--text-main); font-size: 0.9rem;">Tiempo Promedio</h4>
-                                <p id="homeTiempoPromedio" style="font-size: 1.25rem; font-weight: bold; color: var(--primary); margin-top: 0.25rem;">--</p>
-                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Calculado en base a los envíos recientes.</p>
+                    <!-- Panel lateral derecho -->
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="card" style="padding: 1.35rem; margin-bottom: 0;">
+                            <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1rem; font-weight: 700; font-family: 'Outfit', sans-serif;">🏥 Central de Esterilización</h3>
+                            <div class="info-card">
+                                <h4 style="color: var(--text-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">Tiempo Promedio</h4>
+                                <p id="homeTiempoPromedio" style="font-size: 1.5rem; font-weight: 800; color: var(--primary); line-height: 1;">--</p>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem;">Calculado en base a los envíos recientes.</p>
+                            </div>
+                        </div>
+                        <div class="card" style="padding: 1.35rem; margin-bottom: 0;">
+                            <h3 style="margin-bottom: 0.75rem; color: var(--text-main); font-size: 1rem; font-weight: 700; font-family: 'Outfit', sans-serif;">🔔 Actividad Reciente</h3>
+                            <div id="homeActividadReciente" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <p style="font-size: 0.82rem; color: var(--text-muted);">Sin actividad reciente.</p>
                             </div>
                         </div>
                     </div>
@@ -207,12 +247,12 @@
                 </div>
 
                 <!-- Sub-Navegación Admin -->
-                <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1.5rem; overflow-x: auto; white-space: nowrap;">
-                    <button class="btn-primary admin-tab-btn" data-tab="usuarios" onclick="cambiarPestañaAdmin('usuarios')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">👥 Usuarios</button>
-                    <button class="btn-outline admin-tab-btn" data-tab="insumos" onclick="cambiarPestañaAdmin('insumos')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📦 Insumos Globales</button>
-                    <button class="btn-outline admin-tab-btn" data-tab="clinicas" onclick="cambiarPestañaAdmin('clinicas')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📅 Clínicas</button>
-                    <button class="btn-outline admin-tab-btn" data-tab="central" onclick="cambiarPestañaAdmin('central')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">🏥 Central</button>
-                    <button class="btn-outline admin-tab-btn" data-tab="logs" onclick="cambiarPestañaAdmin('logs')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md);">📜 Auditoría</button>
+                <div class="admin-tabs-nav">
+                    <button class="admin-tab-btn active" data-tab="usuarios" onclick="cambiarPestañaAdmin('usuarios')">👥 Usuarios</button>
+                    <button class="admin-tab-btn" data-tab="insumos" onclick="cambiarPestañaAdmin('insumos')">📦 Insumos Globales</button>
+                    <button class="admin-tab-btn" data-tab="clinicas" onclick="cambiarPestañaAdmin('clinicas')">📅 Clínicas</button>
+                    <button class="admin-tab-btn" data-tab="central" onclick="cambiarPestañaAdmin('central')">🏥 Central</button>
+                    <button class="admin-tab-btn" data-tab="logs" onclick="cambiarPestañaAdmin('logs')">📜 Auditoría</button>
                 </div>
 
                 <!-- Tab content containers -->
@@ -573,15 +613,16 @@
                 
                 <div class="filtros-card">
                     <div class="filtro-group">
-                        <label>Fecha Solicitud:</label>
+                        <label>📅 Fecha de Solicitud</label>
                         <input type="date" id="fechaInicio" class="input-date">
                     </div>
                     <div class="filtro-group-checkbox">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="soloVigentes"> 
-                            <span>Solo vigentes (No entregados)</span>
+                            <input type="checkbox" id="soloVigentes">
+                            <span>Solo vigentes (no entregados)</span>
                         </label>
                     </div>
+                    <button class="btn-outline btn-sm" onclick="renderizarSolicitudes()" style="margin-left: auto;">🔄 Actualizar</button>
                 </div>
 
                 <div class="tabla-responsive card">

@@ -226,21 +226,23 @@ function verificarSesion() {
 function iniciarAplicacion() {
     document.getElementById('modalLogin').style.display = 'none';
     document.getElementById('appContent').style.display = 'flex';
-    
+
     if (usuarioActivo.rol === 'admin') {
         document.getElementById('btnMenuAdminPanel').style.display = 'flex';
     }
 
     const lblUsuario = document.getElementById('lblUsuarioDropdown');
-    if (lblUsuario) {
-        lblUsuario.textContent = usuarioActivo.nombre;
-    }
+    if (lblUsuario) lblUsuario.textContent = usuarioActivo.nombre;
 
-    // Actualizar el trigger del avatar con la inicial del usuario
+    const lblRol = document.getElementById('lblRolDropdown');
+    if (lblRol) lblRol.textContent = usuarioActivo.rol === 'admin' ? '🛠️ Administrador' : '🦷 Dentista';
+
+    // Avatar initial
     const avatarTrigger = document.getElementById('avatarTrigger');
-    if (avatarTrigger) {
-        avatarTrigger.textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
-    }
+    if (avatarTrigger) avatarTrigger.textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
+
+    // Session warning banner
+    iniciarWarningSession();
 
     setupNavigation();
     cargarCajas().then(() => {
@@ -257,6 +259,54 @@ function iniciarAplicacion() {
         btnMenuHome.click();
     } else {
         document.getElementById('vistaHome').style.display = 'block';
+    }
+}
+
+// ==========================================
+// SESSION WARNING BANNER
+// ==========================================
+function iniciarWarningSession() {
+    const token = localStorage.getItem('usuarioToken');
+    if (!token) return;
+
+    try {
+        // Decode JWT payload (no verification needed — just UI timing)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expMs = payload.exp * 1000;
+        const banner = document.getElementById('sessionWarningBanner');
+        const warningText = document.getElementById('sessionWarningText');
+
+        if (!banner) return;
+
+        // Show warning 15 minutes before expiry
+        const checkWarning = () => {
+            const now = Date.now();
+            const msLeft = expMs - now;
+
+            if (msLeft <= 0) {
+                logout();
+                return;
+            }
+
+            if (msLeft <= 15 * 60 * 1000) {
+                const minLeft = Math.ceil(msLeft / 60000);
+                if (warningText) warningText.textContent = `Sesión vence en ${minLeft} min`;
+                banner.classList.add('show');
+            } else {
+                banner.classList.remove('show');
+            }
+        };
+
+        // Click to logout
+        banner.onclick = () => {
+            if (confirm('Tu sesión está por vencer. ¿Deseas cerrar sesión ahora?')) logout();
+        };
+
+        checkWarning();
+        // Check every 30 seconds
+        setInterval(checkWarning, 30000);
+    } catch (e) {
+        // Non-critical — ignore if token is malformed
     }
 }
 
@@ -312,6 +362,7 @@ function setupNavigation() {
             hideAll();
             if (vistaHome) vistaHome.style.display = 'block';
             setActiveSidebarItem('btnMenuHome');
+            actualizarBreadcrumb('Inicio');
         };
     }
 
@@ -323,6 +374,7 @@ function setupNavigation() {
             hideAll();
             if (vistaHome) vistaHome.style.display = 'block';
             setActiveSidebarItem('btnMenuHome');
+            actualizarBreadcrumb('Inicio');
         };
     }
 
@@ -353,6 +405,7 @@ function setupNavigation() {
             hideAll();
             if (vistaPerfil) vistaPerfil.style.display = 'block';
             setActiveSidebarItem('btnMenuMisDatos');
+            actualizarBreadcrumb('👤 Mi Perfil');
         };
     }
 
@@ -362,6 +415,7 @@ function setupNavigation() {
         hideAll();
         if (vistaMisCosas) vistaMisCosas.style.display = 'block';
         setActiveSidebarItem('btnMenuMisCosas');
+        actualizarBreadcrumb('🎒 Mis Cosas');
         cargarInventario();
     };
 
@@ -371,6 +425,7 @@ function setupNavigation() {
         hideAll();
         if (vistaContenedores) vistaContenedores.style.display = 'block';
         setActiveSidebarItem('btnMenuDashboard');
+        actualizarBreadcrumb('🗂️ Dashboard Insumos');
         cargarInventario();
     };
 
@@ -380,6 +435,7 @@ function setupNavigation() {
         hideAll();
         if (vistaHorario) vistaHorario.style.display = 'block';
         setActiveSidebarItem('btnMenuHorario');
+        actualizarBreadcrumb('📅 Calendario Clínicas');
         if (typeof renderizarHorario === 'function') renderizarHorario();
     };
 
@@ -389,11 +445,13 @@ function setupNavigation() {
         hideAll();
         if (vistaCargaPDF) vistaCargaPDF.style.display = 'block';
         setActiveSidebarItem('btnMenuCargaPDF');
+        actualizarBreadcrumb('📄 Cargar PDF');
     };
 
     const openConfigAndScroll = (sectionId) => {
         hideAll();
         if (vistaConfig) vistaConfig.style.display = 'block';
+        actualizarBreadcrumb('⚙️ Configuración');
         cargarClinicas();
         cargarCajas();
         cargarPlantillas();
@@ -418,8 +476,10 @@ function setupNavigation() {
             e.preventDefault();
             hideAll();
             if (vistaAdmin) vistaAdmin.style.display = 'block';
-            cargarLogsAdmin(); // Carga todos los stats e inicializa los logs
-            cambiarPestañaAdmin('usuarios'); // Abre por defecto la pestaña de usuarios
+            setActiveSidebarItem('btnMenuAdminPanel');
+            actualizarBreadcrumb('🛠️ Panel de Administrador');
+            cargarLogsAdmin();
+            cambiarPestañaAdmin('usuarios');
         };
     }
 
@@ -433,22 +493,37 @@ function setupNavigation() {
 
     // --- Home Cards Logic ---
     const cardHomeMisCosas = document.getElementById('cardHomeMisCosas');
-    if (cardHomeMisCosas) cardHomeMisCosas.onclick = () => {
-        const btn = document.getElementById('btnMenuMisCosas');
-        if (btn) btn.click();
-    };
-    
+    if (cardHomeMisCosas) cardHomeMisCosas.onclick = () => document.getElementById('btnMenuMisCosas')?.click();
+
     const cardHomeDashboard = document.getElementById('cardHomeDashboard');
-    if (cardHomeDashboard) cardHomeDashboard.onclick = () => {
-        const btn = document.getElementById('btnMenuDashboard');
-        if (btn) btn.click();
-    };
-    
-    const btnHomeToHorario = document.getElementById('btnHomeToHorario');
-    if (btnHomeToHorario) btnHomeToHorario.onclick = () => {
-        const btn = document.getElementById('btnMenuHorario');
-        if (btn) btn.click();
-    };
+    if (cardHomeDashboard) cardHomeDashboard.onclick = () => document.getElementById('btnMenuDashboard')?.click();
+
+    const cardHomeSolicitudes = document.getElementById('cardHomeSolicitudes');
+    if (cardHomeSolicitudes) cardHomeSolicitudes.onclick = () => document.getElementById('btnMenuTabla')?.click();
+
+    const cardHomePDF = document.getElementById('cardHomePDF');
+    if (cardHomePDF) cardHomePDF.onclick = () => document.getElementById('btnMenuCargaPDF')?.click();
+
+    // --- Sidebar solicitudes link ---
+    const btnMenuTabla = document.getElementById('btnMenuTabla');
+    if (btnMenuTabla) {
+        btnMenuTabla.onclick = (e) => {
+            if (e) e.preventDefault();
+            hideAll();
+            if (vistaTabla) vistaTabla.style.display = 'block';
+            setActiveSidebarItem('btnMenuTabla');
+            actualizarBreadcrumb('📋 Historial de Solicitudes');
+            cargarSolicitudes();
+        };
+    }
+}
+
+// ==========================================
+// BREADCRUMB HELPER
+// ==========================================
+function actualizarBreadcrumb(title) {
+    const el = document.getElementById('headerPageTitle');
+    if (el) el.textContent = title;
 }
 
 // ==========================================
@@ -848,15 +923,28 @@ function renderizarInsumos(ubicacionDOM, insumos, esVistaMaestra = false) {
             </div>`;
         }
 
+        // Set data-estado for CSS left border coloring
+        let estadoAttr = 'locker';
+        if (insumo.ubicacionActual === 'central_esterilizacion') {
+            estadoAttr = 'en_proceso';
+        } else if (insumo.esterilizado) {
+            estadoAttr = 'esterilizado';
+        }
+        div.setAttribute('data-estado', estadoAttr);
+
+        const esterilBadge = insumo.esterilizado
+            ? '<span class="badge badge-success">✅ Esterilizado</span>'
+            : '<span class="badge badge-neutral">Sin esterilizar</span>';
+
         div.innerHTML = `
             <div class="insumo-info">
                 ${badgeUbicacion}
-                <h4>${insumo.nombre} (${insumo.codigo})</h4>
+                <h4>${insumo.nombre} <span style="font-weight:500; font-size:0.85rem; color:var(--text-muted);">${insumo.codigo ? '(' + insumo.codigo + ')' : ''}</span></h4>
                 <p style="display: flex; align-items: center; gap: 5px;">
-                    <span>Desc: ${insumo.tipo}</span> 
-                    <button style="background: none; border: none; cursor: pointer; opacity: 0.6;" onclick="editarDescripcion('${insumo._id}', '${insumo.tipo.replace(/'/g, "\\'")}')" title="Editar descripción">✏️</button>
+                    <span>${insumo.tipo}</span>
+                    <button style="background: none; border: none; cursor: pointer; opacity: 0.5; font-size: 0.85rem;" onclick="editarDescripcion('${insumo._id}', '${insumo.tipo.replace(/'/g, "\\'")}')" title="Editar descripción">✏️</button>
                 </p>
-                <p><strong style="color: var(--primary)">Cant: ${insumo.cantidad}</strong> | ${insumo.esterilizado ? '✅ Esterilizado' : '❌ No esterilizado'}</p>
+                <p><strong style="color: var(--primary)">Cant: ${insumo.cantidad}</strong> &nbsp; ${esterilBadge}</p>
                 ${infoExtra}
             </div>
             ${optionsHtml}
@@ -916,6 +1004,7 @@ async function cargarSolicitudes() {
         const response = await fetch(`${API_URL}/solicitudes`);
         solicitudes = await response.json();
         renderizarTablaSolicitudes();
+        actualizarBadgeSolicitudes();
     } catch (error) {
         console.error('Error cargando solicitudes:', error);
     }
@@ -1008,7 +1097,7 @@ function renderizarTablaSolicitudes() {
 
     let filtradas = [...solicitudes];
 
-    // Filtrar para ver solo las del usuario actual (o huérfanas por reinicio de DB en memoria)
+    // Filter to current user only
     filtradas = filtradas.filter(s => !s.usuario || s.usuario._id === usuarioActivo._id || s.usuario === usuarioActivo._id);
 
     if (fechaInicio) {
@@ -1021,32 +1110,60 @@ function renderizarTablaSolicitudes() {
 
     if (soloVigentes) filtradas = filtradas.filter(s => s.estado !== 'ENTREGADO');
 
+    if (filtradas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Sin solicitudes</div><div class="empty-state-text">No hay solicitudes que coincidan con los filtros aplicados.</div></div></td></tr>`;
+        return;
+    }
+
     tbody.innerHTML = filtradas.map(s => {
         const fechaSol = new Date(s.fecha);
         const fechaLlegada = s.devolucionEstimada ? new Date(s.devolucionEstimada) : null;
         const fechaRec = s.fechaRecepcion ? new Date(s.fechaRecepcion) : null;
 
-        let llegadaHtml = '-';
+        let llegadaHtml = '<span style="color: var(--text-muted);">—</span>';
         if (fechaLlegada) {
             const isLate = new Date() > fechaLlegada && s.estado !== 'ENTREGADO';
-            llegadaHtml = `<span style="color: ${isLate ? 'var(--danger)' : 'var(--primary)'}; font-weight: 600;">${fechaLlegada.toLocaleDateString()} ${fechaLlegada.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
+            llegadaHtml = `<span style="color: ${isLate ? 'var(--danger)' : 'var(--text-main)'}; font-weight: 600;">${fechaLlegada.toLocaleDateString()} <span style="color: var(--text-muted); font-weight:400;">${fechaLlegada.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></span>`;
         }
+
+        let estadoBadge = '';
+        if (s.estado === 'ENTREGADO') estadoBadge = '<span class="status-badge entregado">Entregado</span>';
+        else if (s.estado === 'EN_ESTERILIZACION') estadoBadge = '<span class="status-badge en-esterilizacion">En Central</span>';
+        else estadoBadge = '<span class="status-badge solicitado">Solicitado</span>';
 
         return `
             <tr>
-                <td><strong>${s.consecutivo}</strong></td>
-                <td>${fechaSol.toLocaleDateString()}</td>
-                <td><span class="badge ${s.estado === 'ENTREGADO' ? 'badge-success' : 'badge-warning'}">${s.estado.replace('_', ' ')}</span></td>
-                <td>${s.insumoNombre}</td>
-                <td><strong>${s.cantidad}</strong></td>
+                <td><strong style="font-family: \'Outfit\', sans-serif; color: var(--primary);">${s.consecutivo}</strong></td>
+                <td style="color: var(--text-muted); font-size: 0.82rem;">${fechaSol.toLocaleDateString()}</td>
+                <td>${estadoBadge}</td>
+                <td><strong>${s.insumoNombre}</strong><br><span style="color: var(--text-muted); font-size: 0.78rem;">${s.insumoCodigo || ''}</span></td>
+                <td><strong style="color: var(--primary);">${s.cantidad}</strong></td>
                 <td>${llegadaHtml}</td>
-                <td>${fechaRec ? fechaRec.toLocaleDateString() : '-'}</td>
+                <td style="color: var(--text-muted); font-size: 0.82rem;">${fechaRec ? fechaRec.toLocaleDateString() : '—'}</td>
                 <td>
-                    ${s.estado !== 'ENTREGADO' ? `<button class="btn-outline" onclick="recibirSolicitud('${s.consecutivo}', '${s.insumoId}')">Recibir</button>` : 'Entregado'}
+                    ${s.estado !== 'ENTREGADO'
+                        ? `<button class="btn-success btn-sm" onclick="recibirSolicitud('${s.consecutivo}', '${s.insumoId}')">✅ Recibir</button>`
+                        : '<span class="badge badge-success">Entregado</span>'}
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+// Update sidebar badge with pending solicitudes count
+function actualizarBadgeSolicitudes() {
+    const badge = document.getElementById('sidebarBadgeSolicitudes');
+    if (!badge) return;
+    const pendientes = solicitudes.filter(s =>
+        (!s.usuario || s.usuario._id === usuarioActivo?._id || s.usuario === usuarioActivo?._id)
+        && s.estado !== 'ENTREGADO'
+    ).length;
+    if (pendientes > 0) {
+        badge.textContent = pendientes > 99 ? '99+' : pendientes;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
 }
 
 // ==========================================
@@ -2402,13 +2519,13 @@ let adminLogsGlobal = [];
 function cambiarPestañaAdmin(tabName) {
     // Ocultar todas las sub-vistas del admin
     document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
-    
-    // Cambiar clases de los botones de sub-navegación
+
+    // Update active state using the new underline tab style
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         if (btn.getAttribute('data-tab') === tabName) {
-            btn.className = 'btn-primary admin-tab-btn';
+            btn.classList.add('active');
         } else {
-            btn.className = 'btn-outline admin-tab-btn';
+            btn.classList.remove('active');
         }
     });
 
