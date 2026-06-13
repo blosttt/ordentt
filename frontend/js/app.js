@@ -103,19 +103,68 @@ function initTheme() {
 function setupMobileMenu() {
     const btnMobileMenu = document.getElementById('btnMobileMenu');
     const sidebar = document.querySelector('.sidebar');
-    
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function openSidebar() {
+        sidebar.classList.add('mobile-open');
+        if (overlay) overlay.classList.add('show');
+        document.body.style.overflow = 'hidden'; // prevent background scroll
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
     if (btnMobileMenu && sidebar) {
         btnMobileMenu.onclick = () => {
-            sidebar.classList.toggle('mobile-open');
+            if (sidebar.classList.contains('mobile-open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
         };
 
-        // Close sidebar when clicking a link (mobile only)
+        // Close when clicking overlay
+        if (overlay) {
+            overlay.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar when clicking a nav link (mobile only)
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('mobile-open');
+                    closeSidebar();
                 }
             });
+        });
+
+        // Close sidebar when pressing Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('mobile-open')) {
+                closeSidebar();
+            }
+        });
+
+        // Swipe left to close sidebar on touch devices
+        let touchStartX = 0;
+        sidebar.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        sidebar.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].screenX - touchStartX;
+            if (dx < -50) { // swiped left
+                closeSidebar();
+            }
+        }, { passive: true });
+
+        // Reset body overflow on resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
         });
     }
 }
