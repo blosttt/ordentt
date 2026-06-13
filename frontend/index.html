@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ordent — Trazabilidad Odontológica</title>
     <meta name="description" content="Sistema de trazabilidad odontológica: inventario, esterilización y calendario clínico en tiempo real.">
-    <link rel="stylesheet" href="css/style.css?v=5">
+    <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 
 <body>
@@ -187,36 +187,97 @@
             
             <!-- VISTA PERFIL -->
             <div id="vistaPerfil" class="view-section" style="display: none;">
-                <div class="view-header">
-                    <h2>👤 Mi Perfil</h2>
-                    <p>Información de tu cuenta y sesión activa.</p>
+                <div class="view-header flex-between">
+                    <div>
+                        <h2>👤 Mi Perfil</h2>
+                        <p>Administra tu cuenta y datos de acceso.</p>
+                    </div>
                 </div>
-                <div class="card" style="padding: 2rem; max-width: 600px;">
-                    <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 2rem;">
-                        <div style="width: 80px; height: 80px; background-color: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold;" id="avatarPerfil">
-                            U
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start;">
+
+                    <!-- Columna izquierda: Avatar + Info -->
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <!-- Avatar card -->
+                        <div class="card" style="padding: 2rem; text-align: center; margin-bottom: 0;">
+                            <div id="avatarPerfil" style="width: 88px; height: 88px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; margin: 0 auto 1rem; box-shadow: var(--shadow-neon); font-family: 'Sora', sans-serif; letter-spacing: -0.02em;">
+                                U
+                            </div>
+                            <h3 id="nombrePerfilTitle" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem; font-family: 'Sora', sans-serif;">Cargando...</h3>
+                            <span class="badge badge-info" id="rolPerfilBadge" style="font-size: 0.7rem;">Usuario</span>
+
+                            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.75rem; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">ID / Carnet</span>
+                                    <strong id="perfilCarnetDisplay" style="font-size: 0.85rem; color: var(--text-main); font-family: 'Courier New', monospace;">--</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.75rem; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Rol</span>
+                                    <strong id="perfilRolDisplay" style="font-size: 0.85rem; color: var(--primary);">--</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.75rem; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Insumos</span>
+                                    <strong id="perfilTotalInsumos" style="font-size: 0.85rem; color: var(--text-main);">--</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.75rem; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Solicitudes</span>
+                                    <strong id="perfilTotalSolicitudes" style="font-size: 0.85rem; color: var(--text-main);">--</strong>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 id="nombrePerfilTitle" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Cargando...</h3>
-                            <span class="badge badge-success" id="rolPerfilBadge">Usuario</span>
+
+                        <!-- Session info -->
+                        <div class="card" style="padding: 1.25rem; margin-bottom: 0;">
+                            <h4 style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.85rem;">🔒 Sesión Activa</h4>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Expira en: <strong id="perfilSesionExpira" style="color: var(--warning);">--</strong></div>
+                                <button onclick="logout()" class="btn-danger btn-sm w-full" style="margin-top: 0.5rem;">🚪 Cerrar Sesión</button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <form id="formEditarPerfil">
-                        <div class="form-group">
-                            <label>Carnet / ID (Restringido)</label>
-                            <input type="text" id="perfilCarnet" class="input-text" readonly style="background-color: var(--background); cursor: not-allowed; opacity: 0.8;">
+
+                    <!-- Columna derecha: Formularios -->
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <!-- Editar datos -->
+                        <div class="card" style="padding: 1.75rem; margin-bottom: 0;">
+                            <h3 style="font-family: 'Sora', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">✏️ Editar Información</h3>
+                            <form id="formEditarPerfil">
+                                <div class="form-group">
+                                    <label>Carnet / ID <span style="color: var(--text-muted); font-weight: 400; font-size: 0.75rem;">(no editable)</span></label>
+                                    <input type="text" id="perfilCarnet" class="input-text" readonly style="background-color: var(--background); cursor: not-allowed; opacity: 0.65; font-family: 'Courier New', monospace; letter-spacing: 0.05em;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nombre del Centro o Dentista</label>
+                                    <input type="text" id="perfilNombre" class="input-text" required placeholder="Tu nombre completo o nombre de la clínica">
+                                </div>
+                                <button type="submit" class="btn-primary" style="padding: 0.7rem 1.5rem;">Guardar Nombre</button>
+                            </form>
                         </div>
-                        <div class="form-group">
-                            <label>Nombre del Centro o Dentista</label>
-                            <input type="text" id="perfilNombre" class="input-text" required>
+
+                        <!-- Cambiar contraseña -->
+                        <div class="card" style="padding: 1.75rem; margin-bottom: 0;">
+                            <h3 style="font-family: 'Sora', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">🔐 Cambiar Contraseña</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;">Usa una contraseña segura de al menos 8 caracteres.</p>
+                            <form id="formCambiarPassword" onsubmit="cambiarPasswordPerfil(event)">
+                                <div class="form-group">
+                                    <label>Nueva Contraseña</label>
+                                    <input type="password" id="perfilPasswordNueva" class="input-text" placeholder="Mínimo 8 caracteres" minlength="6">
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirmar Contraseña</label>
+                                    <input type="password" id="perfilPasswordConfirm" class="input-text" placeholder="Repite la contraseña">
+                                </div>
+                                <button type="submit" class="btn-outline" style="padding: 0.7rem 1.5rem;">Actualizar Contraseña</button>
+                            </form>
                         </div>
-                        <div class="form-group">
-                            <label>Nueva Contraseña (Opcional)</label>
-                            <input type="password" id="perfilPassword" class="input-text" placeholder="Dejar en blanco para no cambiarla">
+
+                        <!-- Zona de peligro -->
+                        <div class="card" style="padding: 1.5rem; margin-bottom: 0; border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.02);">
+                            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--danger); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">⚠️ Zona de Peligro</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">Estas acciones son permanentes e irreversibles.</p>
+                            <button onclick="logout()" class="btn-outline" style="border-color: var(--danger); color: var(--danger); padding: 0.5rem 1.25rem; font-size: 0.875rem;">🚪 Cerrar sesión ahora</button>
                         </div>
-                        <button type="submit" class="btn-primary w-full mt-3">Guardar Cambios</button>
-                    </form>
+                    </div>
                 </div>
             </div>
 
@@ -649,7 +710,7 @@
         </div> <!-- Fin de main-wrapper -->
     </div> <!-- Fin de app-container -->
 
-    <!-- MODAL DE LOGIN (Visible por defecto hasta autenticar) -->
+    <!-- MODAL DE LOGIN -->
     <div id="modalLogin" class="login-fullscreen" style="display: flex;">
         <div class="login-split-container">
             <!-- Lado Izquierdo (Branding) -->
@@ -657,83 +718,102 @@
                 <div class="login-logo-container">
                     <h1 class="login-logo-text">Ordent Tracker</h1>
                 </div>
+
                 <div class="login-branding-content">
-                    <h2 class="login-branding-title">Tu centro,<br>en un solo lugar.</h2>
-                    <p class="login-branding-subtitle">Agenda, inventario, clínicas y trazabilidad — todo sincronizado en tiempo real.</p>
+                    <h2 class="login-branding-title">Trazabilidad dental,<br>sin complicaciones.</h2>
+                    <p class="login-branding-subtitle">Gestiona tu instrumental odontológico, controla la esterilización y accede a tus clínicas — todo en un solo lugar.</p>
+
+                    <div class="login-feature-pills">
+                        <span class="login-pill">📦 Inventario inteligente</span>
+                        <span class="login-pill">🧪 Trazabilidad de esterilización</span>
+                        <span class="login-pill">📅 Calendario de clínicas</span>
+                        <span class="login-pill">📄 Importación por PDF</span>
+                        <span class="login-pill">🔒 Acceso seguro JWT</span>
+                    </div>
                 </div>
+
                 <div class="login-footer">
-                    <p>© 2026 Ordent Tracker. Todos los derechos reservados.</p>
+                    <p>© 2026 Ordent Tracker • Todos los derechos reservados.</p>
                 </div>
-                <!-- Decoraciones Cyberpunk -->
+
                 <div class="glow-circle circle-1"></div>
                 <div class="glow-circle circle-2"></div>
+                <!-- Decorative grid overlay -->
+                <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none;"></div>
             </div>
-            
+
             <!-- Lado Derecho (Formulario) -->
             <div class="login-right-panel">
+                <!-- LOGIN -->
                 <div class="login-form-container" id="formLoginBlock">
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(13,148,136,0.08); border: 1px solid rgba(13,148,136,0.2); padding: 0.35rem 0.85rem; border-radius: 20px; margin-bottom: 1.5rem;">
+                        <span style="width: 7px; height: 7px; background: var(--primary); border-radius: 50%; display: inline-block;"></span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); letter-spacing: 0.05em; text-transform: uppercase;">Portal Odontológico</span>
+                    </div>
                     <h2 class="login-form-title">Bienvenido de vuelta</h2>
-                    <p class="login-form-subtitle">Ingresa tus credenciales para continuar.</p>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem;">
-                        <div class="form-group">
-                            <label>Usuario (Carnet)</label>
-                            <input type="text" id="loginUsuario" class="input-text login-input" placeholder="Carnet o ID">
+                    <p class="login-form-subtitle">Ingresa tus credenciales para acceder a tu cuenta.</p>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.15rem; margin-top: 2rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Carnet / ID de Usuario</label>
+                            <input type="text" id="loginUsuario" class="input-text login-input" placeholder="Ej: 21087" autocomplete="username">
                         </div>
-                        <div class="form-group">
-                            <div style="display: flex; justify-content: space-between;">
-                                <label>Contraseña</label>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.45rem;">
+                                <label style="margin-bottom: 0;">Contraseña</label>
                                 <a href="#" class="login-forgot-link" onclick="mostrarRecuperar(); return false;">¿Olvidaste tu contraseña?</a>
                             </div>
-                            <input type="password" id="loginClave" class="input-text login-input" placeholder="••••••••">
+                            <input type="password" id="loginClave" class="input-text login-input" placeholder="••••••••" autocomplete="current-password">
                         </div>
-                        <button id="btnIngresar" class="btn-primary w-full login-btn">Iniciar sesión</button>
-                        <p class="login-register-text">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro(); return false;">Crea tu centro</a></p>
+                        <button id="btnIngresar" class="btn-primary w-full login-btn" style="margin-top: 0.25rem;">Iniciar sesión →</button>
+                        <p class="login-register-text">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro(); return false;">Regístrate gratis</a></p>
                     </div>
 
                     <div class="demo-logins-section">
-                        <p class="demo-logins-title">INGRESOS RÁPIDOS PARA DEMO</p>
+                        <p class="demo-logins-title">Accesos rápidos (Demo)</p>
                         <div class="demo-buttons-container">
                             <button class="demo-btn" onclick="document.getElementById('loginUsuario').value='demo_dentista'; document.getElementById('loginClave').value='1234'; document.getElementById('btnIngresar').click();">
-                                🦷 Dentista (Demo)
+                                🦷 Dentista Demo <span style="font-size: 0.75rem; opacity: 0.6; font-weight: 400;">demo_dentista / 1234</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
+                <!-- REGISTRO -->
                 <div class="login-form-container" id="formRegisterBlock" style="display: none;">
-                    <h2 class="login-form-title">Crea tu centro</h2>
-                    <p class="login-form-subtitle">Únete a Ordent Tracker hoy mismo.</p>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem;">
-                        <div class="form-group">
+                    <h2 class="login-form-title">Crea tu cuenta</h2>
+                    <p class="login-form-subtitle">Une tu clínica a Ordent Tracker en segundos.</p>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.15rem; margin-top: 2rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
                             <label>Nombre del Centro o Dentista</label>
                             <input type="text" id="regNombre" class="input-text login-input" placeholder="Ej: Clínica Dental Sur">
                         </div>
-                        <div class="form-group">
-                            <label>Carnet / ID (Será tu usuario)</label>
-                            <input type="text" id="regCarnet" class="input-text login-input" placeholder="Carnet o ID">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Carnet / ID <span style="color: var(--text-muted); font-weight: 400; font-size: 0.75rem;">(será tu usuario)</span></label>
+                            <input type="text" id="regCarnet" class="input-text login-input" placeholder="Ej: 21087" autocomplete="username">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 0;">
                             <label>Contraseña</label>
-                            <input type="password" id="regClave" class="input-text login-input" placeholder="Crea una contraseña">
+                            <input type="password" id="regClave" class="input-text login-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
                         </div>
-                        <button id="btnRegistrar" class="btn-primary w-full login-btn">Registrarme y Entrar</button>
-                        <p class="login-register-text">¿Ya tienes una cuenta? <a href="#" onclick="mostrarLogin(); return false;">Inicia sesión</a></p>
+                        <button id="btnRegistrar" class="btn-primary w-full login-btn" style="margin-top: 0.25rem;">Crear cuenta →</button>
+                        <p class="login-register-text">¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin(); return false;">← Iniciar sesión</a></p>
                     </div>
                 </div>
 
+                <!-- RECUPERAR -->
                 <div class="login-form-container" id="formRecoverBlock" style="display: none;">
-                    <h2 class="login-form-title">Recuperar contraseña</h2>
-                    <p class="login-form-subtitle">Te enviaremos las instrucciones a tu correo.</p>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem;">
-                        <div class="form-group">
-                            <label>Ingresa tu Carnet o ID</label>
-                            <input type="text" id="recoverCarnet" class="input-text login-input" placeholder="Carnet o ID">
+                    <h2 class="login-form-title">Recuperar acceso</h2>
+                    <p class="login-form-subtitle">Ingresa tu carnet y te enviaremos instrucciones.</p>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.15rem; margin-top: 2rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Carnet / ID de acceso</label>
+                            <input type="text" id="recoverCarnet" class="input-text login-input" placeholder="Tu carnet o ID">
                         </div>
-                        <button id="btnRecuperar" class="btn-primary w-full login-btn" style="background-color: var(--accent);">Enviar enlace de recuperación</button>
-                        <p class="login-register-text"><a href="#" onclick="mostrarLogin(); return false;">← Volver al login</a></p>
+                        <button id="btnRecuperar" class="btn-primary w-full login-btn" style="margin-top: 0.25rem;">Enviar instrucciones</button>
+                        <p class="login-register-text"><a href="#" onclick="mostrarLogin(); return false;">← Volver al inicio de sesión</a></p>
                     </div>
                 </div>
             </div>

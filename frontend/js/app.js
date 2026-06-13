@@ -2220,57 +2220,133 @@ async function cargarDatosAdminDashboard() {
 // ==========================================
 function cargarPerfil() {
     if (!usuarioActivo) return;
-    
-    document.getElementById('perfilCarnet').value = usuarioActivo.carnet;
-    document.getElementById('perfilNombre').value = usuarioActivo.nombre;
-    document.getElementById('perfilPassword').value = '';
-    
+
+    // Basic fields
+    const carnetInput = document.getElementById('perfilCarnet');
+    if (carnetInput) carnetInput.value = usuarioActivo.carnet;
+    const nombreInput = document.getElementById('perfilNombre');
+    if (nombreInput) nombreInput.value = usuarioActivo.nombre;
+
+    // Name + Avatar
     const titulo = document.getElementById('nombrePerfilTitle');
     if (titulo) titulo.textContent = usuarioActivo.nombre;
-    
-    const rolBadge = document.getElementById('rolPerfilBadge');
-    if (rolBadge) {
-        rolBadge.textContent = usuarioActivo.rol === 'admin' ? 'Administrador' : 'Usuario';
-        rolBadge.className = usuarioActivo.rol === 'admin' ? 'badge badge-warning' : 'badge badge-success';
-    }
-    
     const avatar = document.getElementById('avatarPerfil');
     if (avatar) avatar.textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
+
+    // Role badge
+    const rolBadge = document.getElementById('rolPerfilBadge');
+    if (rolBadge) {
+        rolBadge.textContent = usuarioActivo.rol === 'admin' ? '🛠️ Administrador' : '🦷 Dentista';
+        rolBadge.className = usuarioActivo.rol === 'admin' ? 'badge badge-warning' : 'badge badge-info';
+    }
+
+    // New sidebar info fields
+    const carnetDisplay = document.getElementById('perfilCarnetDisplay');
+    if (carnetDisplay) carnetDisplay.textContent = usuarioActivo.carnet || '--';
+    const rolDisplay = document.getElementById('perfilRolDisplay');
+    if (rolDisplay) rolDisplay.textContent = usuarioActivo.rol === 'admin' ? 'Administrador' : 'Dentista';
+
+    // Stats from global state
+    let totalInsumos = 0;
+    if (inventarioCompleto) {
+        Object.values(inventarioCompleto).forEach(arr => { totalInsumos += (arr || []).length; });
+    }
+    const perfilTotalInsumos = document.getElementById('perfilTotalInsumos');
+    if (perfilTotalInsumos) perfilTotalInsumos.textContent = totalInsumos;
+
+    const perfilTotalSolicitudes = document.getElementById('perfilTotalSolicitudes');
+    if (perfilTotalSolicitudes) perfilTotalSolicitudes.textContent = solicitudes.filter(s =>
+        !s.usuario || s.usuario._id === usuarioActivo._id || s.usuario === usuarioActivo._id
+    ).length;
+
+    // Session expiry from JWT
+    const token = localStorage.getItem('usuarioToken');
+    const sesionExpiraEl = document.getElementById('perfilSesionExpira');
+    if (token && sesionExpiraEl) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expMs = payload.exp * 1000;
+            const msLeft = expMs - Date.now();
+            if (msLeft > 0) {
+                const minLeft = Math.floor(msLeft / 60000);
+                const hLeft = Math.floor(minLeft / 60);
+                const mLeft = minLeft % 60;
+                sesionExpiraEl.textContent = hLeft > 0 ? `${hLeft}h ${mLeft}min` : `${mLeft} min`;
+            } else {
+                sesionExpiraEl.textContent = 'Expirada';
+                sesionExpiraEl.style.color = 'var(--danger)';
+            }
+        } catch (e) {
+            sesionExpiraEl.textContent = '--';
+        }
+    }
 }
 
 async function guardarPerfil(e) {
     e.preventDefault();
     if (!usuarioActivo) return;
-    
-    const nombre = document.getElementById('perfilNombre').value;
-    const password = document.getElementById('perfilPassword').value;
-    
-    const payload = {};
-    if (nombre) payload.nombre = nombre;
-    if (password) payload.password = password;
-    
+
+    const nombre = document.getElementById('perfilNombre').value.trim();
+    if (!nombre) return mostrarNotificacion('El nombre no puede estar vacío', 'warning');
+
     try {
         const res = await fetch(`${API_URL}/usuarios/${usuarioActivo._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ nombre })
         });
-        
+
         const data = await res.json();
         if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
-        
-        // Update local session
+
         usuarioActivo = data.usuario;
         localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
-        
+
         cargarPerfil();
-        mostrarNotificacion('✅ Perfil actualizado correctamente', 'success');
-        
+        mostrarNotificacion('✅ Nombre actualizado correctamente', 'success');
+
         const lblUsuario = document.getElementById('lblUsuarioDropdown');
         if (lblUsuario) lblUsuario.textContent = usuarioActivo.nombre;
         const avatarTrigger = document.getElementById('avatarTrigger');
         if (avatarTrigger) avatarTrigger.textContent = usuarioActivo.nombre.charAt(0).toUpperCase();
-        
+
+    } catch (error) {
+        mostrarNotificacion(error.message, 'error');
+    }
+}
+
+async function cambiarPasswordPerfil(e) {
+    e.preventDefault();
+    if (!usuarioActivo) return;
+
+    const nuevaPassword = document.getElementById('perfilPasswordNueva').value;
+    const confirmarPassword = document.getElementById('perfilPasswordConfirm').value;
+
+    if (!nuevaPassword || !confirmarPassword) {
+        return mostrarNotificacion('⚠️ Completa ambos campos de contraseña', 'warning');
+    }
+    if (nuevaPassword !== confirmarPassword) {
+        return mostrarNotificacion('❌ Las contraseñas no coinciden', 'error');
+    }
+    if (nuevaPassword.length < 6) {
+        return mostrarNotificacion('⚠️ La contraseña debe tener al menos 6 caracteres', 'warning');
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/usuarios/${usuarioActivo._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: nuevaPassword })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.mensaje || 'Error al actualizar');
+
+        document.getElementById('perfilPasswordNueva').value = '';
+        document.getElementById('perfilPasswordConfirm').value = '';
+        mostrarNotificacion('✅ Contraseña actualizada. Inicia sesión de nuevo.', 'success');
+        setTimeout(logout, 2500);
+
     } catch (error) {
         mostrarNotificacion(error.message, 'error');
     }
