@@ -2017,7 +2017,7 @@ async function cargarLogsAdmin() {
         document.getElementById('adminStatsUsuarios').textContent = users.length || 0;
 
         // Cargar stats de clínicas
-        const resClinics = await fetch(`${API_URL}/clinicas`);
+        const resClinics = await fetch(`${API_URL}/configuracion/clinicas`);
         const dataClinics = await resClinics.json();
         const clinicas = dataClinics.clinicas || [];
         document.getElementById('adminStatsClinicas').textContent = clinicas.length;
@@ -2790,7 +2790,7 @@ async function eliminarInsumoGlobal(id) {
 
 async function cargarClinicasAdmin() {
     try {
-        const res = await fetch(`${API_URL}/clinicas`);
+        const res = await fetch(`${API_URL}/configuracion/clinicas`);
         if (!res.ok) throw new Error('Error al obtener clínicas');
         
         const data = await res.json();
@@ -2840,7 +2840,7 @@ async function cargarClinicasAdmin() {
 
 async function toggleEstadoClinicaAdmin(id) {
     try {
-        const res = await fetch(`${API_URL}/clinicas/${id}/toggle`, {
+        const res = await fetch(`${API_URL}/configuracion/clinicas/${id}/toggle`, {
             method: 'PUT'
         });
         if (!res.ok) throw new Error('Error al cambiar estado de la clínica');
@@ -2856,7 +2856,7 @@ async function eliminarClinicaAdmin(id) {
     if (!confirm('¿Estás seguro de que deseas eliminar esta clínica? Se perderá toda la programación de horarios.')) return;
 
     try {
-        const res = await fetch(`${API_URL}/clinicas/${id}`, {
+        const res = await fetch(`${API_URL}/configuracion/clinicas/${id}`, {
             method: 'DELETE'
         });
         if (!res.ok) throw new Error('Error al eliminar clínica');
