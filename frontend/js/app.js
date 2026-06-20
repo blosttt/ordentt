@@ -256,17 +256,34 @@ function verificarSesion() {
             };
         }
 
-        // Lógica de Recuperación (Mock)
+        // Lógica de Recuperación (Mock -> Funcional)
         const btnRecuperar = document.getElementById('btnRecuperar');
         if (btnRecuperar) {
-            btnRecuperar.onclick = () => {
+            btnRecuperar.onclick = async () => {
                 const carnet = document.getElementById('recoverCarnet').value;
                 if (!carnet) return mostrarNotificacion('Ingresa tu carnet o ID', 'warning');
                 
-                mostrarNotificacion('Las instrucciones han sido enviadas a tu correo registrado.', 'success');
-                setTimeout(() => {
-                    mostrarLogin();
-                }, 2000);
+                try {
+                    let res = await fetch(`${API_URL}/usuarios/recover-password`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ carnet })
+                    });
+                    let data = await res.json();
+                    
+                    if (!res.ok) return mostrarNotificacion(data.mensaje, 'error');
+                    
+                    mostrarNotificacion(data.mensaje, 'success');
+                    
+                    // Mostrar alert adicional para que el usuario pueda copiar la clave temporal
+                    alert(data.mensaje);
+                    
+                    setTimeout(() => {
+                        mostrarLogin();
+                    }, 2000);
+                } catch(error) {
+                    mostrarNotificacion('Error de conexión', 'error');
+                }
             };
         }
     }
@@ -592,10 +609,16 @@ function setupModals() {
         const closeSolicitud = document.getElementById('closeModalSolicitud');
         if (closeSolicitud) closeSolicitud.onclick = () => { if (modalSolicitud) modalSolicitud.style.display = 'none'; };
 
+        const modalDetalleCaja = document.getElementById('modalDetalleCaja');
+        const closeDetalleCaja = document.getElementById('closeModalDetalleCaja');
+        if (closeDetalleCaja) closeDetalleCaja.onclick = () => { if (modalDetalleCaja) modalDetalleCaja.style.display = 'none'; };
+
         window.onclick = (event) => {
             if (event.target === modalInsumo) modalInsumo.style.display = 'none';
             if (event.target === modalSolicitud) modalSolicitud.style.display = 'none';
+            if (event.target === modalDetalleCaja) modalDetalleCaja.style.display = 'none';
         };
+
 
         const formInsumo = document.getElementById('formInsumo');
         if (formInsumo) formInsumo.onsubmit = guardarInsumo;
@@ -799,10 +822,18 @@ async function cargarInventario() {
         // Renderizar Inventario Maestro
         renderizarInsumos('mis_cosas', todosLosInsumos, true);
 
-        // Renderizar Cajas Individuales
+        // Actualizar contadores de las tarjetas del dashboard de cajas
         cajasDelUsuario.forEach(caja => {
-            if (caja.slug !== 'mis_cosas') { // Evitar sobreescribir el maestro si tuvieran mismo ID en UI
-                renderizarInsumos(caja.slug, data[caja.slug] || [], false);
+            if (caja.slug !== 'mis_cosas') {
+                const insumosEnCaja = data[caja.slug] || [];
+                const total = insumosEnCaja.reduce((acc, i) => acc + (i.cantidad || 1), 0);
+                const countEl = document.getElementById(`cajaCount_${caja.slug}`);
+                if (countEl) {
+                    countEl.textContent = total;
+                    // Actualizar el label de singular/plural
+                    const labelEl = countEl.nextElementSibling;
+                    if (labelEl) labelEl.textContent = total === 1 ? 'insumo' : 'insumos';
+                }
             }
         });
 
@@ -902,6 +933,8 @@ async function moverInsumoDOM(selectElement, id, ubicacionOrigen, maxCantidad) {
         });
         if (response.ok) {
             mostrarNotificacion(`✅ Movido a ${nuevaUbicacion.replace('_', ' ')}`, 'success');
+            const modalDetalle = document.getElementById('modalDetalleCaja');
+            if (modalDetalle) modalDetalle.style.display = 'none';
             cargarInventario();
         }
     } catch (error) {
@@ -1234,32 +1267,132 @@ function renderizarDashboardCajas() {
     const grid = document.getElementById('dashboardGrid');
     if (!grid) return;
 
-    // Solo mostrar cajas en el dashboard que no sean "mis_cosas" (ya tiene su propia vista)
+    // Solo mostrar cajas en el dashboard que no sean "mis_cosas"
     const cajasMostrar = cajasDelUsuario.filter(c => c.slug !== 'mis_cosas');
 
     grid.innerHTML = cajasMostrar.map(caja => {
-        let extraHtml = '';
-        if (caja.slug === 'central_esterilizacion') {
-            extraHtml = `<div class="tiempo-promedio" id="tiempoPromedioCentral"></div>`;
-        }
-
         let icon = '📦';
         if (caja.slug === 'central_esterilizacion') icon = '🏥';
         else if (caja.slug === 'locker_universidad') icon = '📚';
         else if (caja.slug === 'en_consulta') icon = '👨‍⚕️';
         else if (caja.slug === 'cajon_casa') icon = '🏠';
 
+        // Contar insumos de esta caja (se actualizará al cargar inventario)
+        const insumos = (inventarioCompleto && inventarioCompleto[caja.slug]) ? inventarioCompleto[caja.slug] : [];
+        const total = insumos.reduce((acc, i) => acc + (i.cantidad || 1), 0);
+        const tipoLabel = total === 1 ? 'insumo' : 'insumos';
+
         return `
-            <div class="container-card" data-ubicacion="${caja.slug}">
-                <div class="card-header">
-                    <h3>${icon} ${caja.nombre}</h3>
+            <div class="container-card" data-slug="${caja.slug}" data-icon="${icon}" data-nombre="${caja.nombre}" onclick="abrirModalDetalleCaja('${caja.slug}')">
+                <span class="caja-card-icon">${icon}</span>
+                <div>
+                    <p class="caja-card-nombre">${caja.nombre}</p>
                 </div>
-                ${extraHtml}
-                <div class="insumos-container" id="${caja.slug}"></div>
+                <div>
+                    <div class="caja-card-count" id="cajaCount_${caja.slug}">${total}</div>
+                    <div class="caja-card-count-label">${tipoLabel}</div>
+                </div>
+                <span class="caja-card-pill">Ver detalle →</span>
             </div>
         `;
     }).join('');
 }
+
+function abrirModalDetalleCaja(slug) {
+    const caja = cajasDelUsuario.find(c => c.slug === slug);
+    if (!caja) return;
+
+    let icon = '📦';
+    if (slug === 'central_esterilizacion') icon = '🏥';
+    else if (slug === 'locker_universidad') icon = '📚';
+    else if (slug === 'en_consulta') icon = '👨‍⚕️';
+    else if (slug === 'cajon_casa') icon = '🏠';
+
+    const insumos = (inventarioCompleto && inventarioCompleto[slug]) ? inventarioCompleto[slug] : [];
+    const total = insumos.reduce((acc, i) => acc + (i.cantidad || 1), 0);
+
+    // Actualizar header del modal
+    document.getElementById('modalCajaIcon').textContent = icon;
+    document.getElementById('modalCajaNombre').textContent = caja.nombre;
+    document.getElementById('modalCajaSubtitle').textContent = `${total} ${total === 1 ? 'insumo' : 'insumos'} en esta ubicación`;
+
+    // Renderizar insumos en el body del modal
+    const body = document.getElementById('modalCajaBody');
+    body.innerHTML = '';
+
+    if (insumos.length === 0) {
+        body.innerHTML = `
+            <div class="modal-caja-empty">
+                <span class="empty-icon">📭</span>
+                <p style="font-weight: 600; color: var(--text-main); margin-bottom: 0.35rem;">Esta caja está vacía</p>
+                <p style="font-size: 0.82rem;">No hay insumos en <strong>${caja.nombre}</strong> por el momento.</p>
+            </div>`;
+    } else {
+        insumos.forEach(insumo => {
+            const div = document.createElement('div');
+            div.className = 'insumo-item';
+
+            // Estado para el borde lateral
+            let estadoAttr = 'locker';
+            if (insumo.ubicacionActual === 'central_esterilizacion') estadoAttr = 'en_proceso';
+            else if (insumo.esterilizado) estadoAttr = 'esterilizado';
+            div.setAttribute('data-estado', estadoAttr);
+
+            const esterilBadge = insumo.esterilizado
+                ? '<span class="badge badge-success">✅ Esterilizado</span>'
+                : '<span class="badge badge-neutral">Sin esterilizar</span>';
+
+            let infoExtra = '';
+            if (insumo.ubicacionActual === 'central_esterilizacion' && insumo.tiempoEnCentral) {
+                infoExtra = `<p style="color: #eab308; font-weight: 600; margin-top: 5px;">⏱️ ${insumo.tiempoEnCentral.texto}</p>`;
+            }
+
+            let optionsHtml = '';
+            if (insumo.ubicacionActual !== 'central_esterilizacion') {
+                let options = '<option value="">Mover a...</option>';
+                cajasDelUsuario.forEach(c => {
+                    if (c.slug !== insumo.ubicacionActual && c.slug !== 'central_esterilizacion') {
+                        options += `<option value="${c.slug}">${c.nombre}</option>`;
+                    }
+                });
+
+                let btnEsterilizar = '';
+                if (!insumo.esterilizado) {
+                    btnEsterilizar = `
+                    <button onclick="abrirModalSolicitud('${insumo._id}')" class="btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; width: 100%; height: 35px; gap: 0.25rem; margin-top: 0.5rem;">
+                        🏥 Enviar a Esterilizar
+                    </button>`;
+                }
+
+                optionsHtml = `
+                <div class="insumo-actions" style="display: flex; flex-direction: column; gap: 0.25rem; width: 100%;">
+                    <select onchange="moverInsumoDOM(this, '${insumo._id}', '${insumo.ubicacionActual}', ${insumo.cantidad})" style="border-radius: var(--radius-md); height: 35px; padding: 0.4rem;">
+                        ${options}
+                    </select>
+                    ${btnEsterilizar}
+                </div>`;
+            }
+
+            div.innerHTML = `
+                <div class="insumo-info">
+                    <h4>${insumo.nombre} <span style="font-weight:500; font-size:0.85rem; color:var(--text-muted);">${insumo.codigo ? '(' + insumo.codigo + ')' : ''}</span></h4>
+                    <p style="display: flex; align-items: center; gap: 5px;">
+                        <span>${insumo.tipo}</span>
+                        <button style="background: none; border: none; cursor: pointer; opacity: 0.5; font-size: 0.85rem;" onclick="editarDescripcion('${insumo._id}', '${insumo.tipo.replace(/'/g, "\\'")}'); document.getElementById('modalDetalleCaja').style.display='none';" title="Editar descripción">✏️</button>
+                    </p>
+                    <p><strong style="color: var(--primary)">Cant: ${insumo.cantidad}</strong> &nbsp; ${esterilBadge}</p>
+                    ${infoExtra}
+                </div>
+                ${optionsHtml}
+            `;
+            body.appendChild(div);
+        });
+    }
+
+    document.getElementById('modalDetalleCaja').style.display = 'flex';
+}
+
+
 
 function renderizarCajasConfig() {
     const container = document.getElementById('cajasListContainer');

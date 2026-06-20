@@ -29,6 +29,31 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.recoverPassword = async (req, res) => {
+    try {
+        const { carnet } = req.body;
+        const usuario = await Usuario.findOne({ carnet });
+        
+        if (!usuario) {
+            return res.status(404).json({ mensaje: 'No existe una cuenta con este carnet' });
+        }
+        
+        const nuevaPassword = 'ordent' + carnet;
+        usuario.password = nuevaPassword;
+        await usuario.save();
+        
+        await Log.create({
+            usuario: usuario.nombre || carnet,
+            accion: 'RECUPERAR_PASSWORD',
+            descripcion: `El usuario ${carnet} solicitó recuperación de contraseña. Se asignó clave temporal.`
+        });
+        
+        res.json({ mensaje: `Tu nueva contraseña temporal es: ${nuevaPassword}` });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al recuperar contraseña', error: error.message });
+    }
+};
+
 exports.register = async (req, res) => {
     try {
         const { nombre, carnet, password } = req.body;
