@@ -501,6 +501,15 @@ body.dark-mode .data-table th, body.dark-mode .table-custom th { background: rgb
 }
 .modal-caja-body .insumo-item {
     animation: slideInFade 0.2s ease both;
+    transition: background-color var(--transition-base), border-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
+}
+.modal-caja-body .insumo-item[data-esterilizado="true"] {
+    background-color: var(--success-light);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+.modal-caja-body .insumo-item[data-esterilizado="false"] {
+    background-color: var(--danger-light);
+    border-color: rgba(239, 68, 68, 0.2);
 }
 .modal-caja-body .insumo-item:nth-child(1) { animation-delay: 0.04s; }
 .modal-caja-body .insumo-item:nth-child(2) { animation-delay: 0.08s; }
@@ -514,9 +523,81 @@ body.dark-mode .data-table th, body.dark-mode .table-custom th { background: rgb
     font-size: 0.9rem;
 }
 .modal-caja-empty .empty-icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+
+/* Boton Mas Informacion e Info Expandible */
+.btn-detail-toggle {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-main);
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all var(--transition-fast);
+    margin-top: 0.5rem;
+    width: fit-content;
+}
+.btn-detail-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--text-subtle);
+}
+body.dark-mode .btn-detail-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+.btn-detail-toggle.active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.insumo-detail-pane {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow: hidden;
+}
+.insumo-detail-pane p {
+    margin: 0;
+    line-height: 1.4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+    padding: 0.15rem 0;
+}
+body.dark-mode .insumo-detail-pane p {
+    border-bottom-color: rgba(255, 255, 255, 0.02);
+}
+.insumo-detail-pane strong {
+    color: var(--text-main);
+}
+.insumo-detail-pane span {
+    text-align: right;
+}
+
 @keyframes slideInFade {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+    }
 }
 
 

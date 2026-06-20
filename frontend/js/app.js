@@ -1337,6 +1337,9 @@ function abrirModalDetalleCaja(slug) {
             if (insumo.ubicacionActual === 'central_esterilizacion') estadoAttr = 'en_proceso';
             else if (insumo.esterilizado) estadoAttr = 'esterilizado';
             div.setAttribute('data-estado', estadoAttr);
+            
+            // Fondo verde si está esterilizado y rojo si no
+            div.setAttribute('data-esterilizado', insumo.esterilizado ? 'true' : 'false');
 
             const esterilBadge = insumo.esterilizado
                 ? '<span class="badge badge-success">✅ Esterilizado</span>'
@@ -1373,8 +1376,46 @@ function abrirModalDetalleCaja(slug) {
                 </div>`;
             }
 
+            // Datos adicionales para el panel de más información
+            const nombreCaja = caja ? caja.nombre : slug.replace(/_/g, ' ').toUpperCase();
+            
+            let historialHtml = '';
+            if (insumo.historial && insumo.historial.length > 0) {
+                const ultimosMovimientos = [...insumo.historial]
+                    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                    .slice(0, 3);
+                
+                const itemsHistorial = ultimosMovimientos.map(h => {
+                    const f = new Date(h.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    return `<div style="font-size: 0.72rem; margin-top: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--border-strong);">
+                        <span style="color: var(--text-main); font-weight: 600;">${h.accion}</span> - <span style="font-size:0.68rem; color: var(--text-muted);">${f}</span>
+                        ${h.nota ? `<p style="margin: 0; font-size: 0.68rem; color: var(--text-muted); font-style: italic;">${h.nota}</p>` : ''}
+                    </div>`;
+                }).join('');
+                
+                historialHtml = `
+                <div style="margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; width: 100%;">
+                    <span style="font-weight: 700; font-size: 0.72rem; color: var(--text-main); display: block; margin-bottom: 0.25rem;">Historial reciente:</span>
+                    ${itemsHistorial}
+                </div>`;
+            }
+
+            const fechaRegistro = insumo.createdAt 
+                ? new Date(insumo.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                : 'No disponible';
+
+            let fechasEsterilHtml = '';
+            if (insumo.fechaEnvioEsterilizacion) {
+                const fEnvio = new Date(insumo.fechaEnvioEsterilizacion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                fechasEsterilHtml += `<p><strong>Enviado a esterilizar:</strong> <span>${fEnvio}</span></p>`;
+            }
+            if (insumo.fechaDevolucionEstimada) {
+                const fDevolucion = new Date(insumo.fechaDevolucionEstimada).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                fechasEsterilHtml += `<p><strong>Devolución estimada:</strong> <span>${fDevolucion}</span></p>`;
+            }
+
             div.innerHTML = `
-                <div class="insumo-info">
+                <div class="insumo-info" style="width: 100%;">
                     <h4>${insumo.nombre} <span style="font-weight:500; font-size:0.85rem; color:var(--text-muted);">${insumo.codigo ? '(' + insumo.codigo + ')' : ''}</span></h4>
                     <p style="display: flex; align-items: center; gap: 5px;">
                         <span>${insumo.tipo}</span>
@@ -1382,6 +1423,19 @@ function abrirModalDetalleCaja(slug) {
                     </p>
                     <p><strong style="color: var(--primary)">Cant: ${insumo.cantidad}</strong> &nbsp; ${esterilBadge}</p>
                     ${infoExtra}
+                    
+                    <button class="btn-detail-toggle" onclick="toggleDetalleInsumo(this, '${insumo._id}')">
+                        ℹ️ Más información ▾
+                    </button>
+                    
+                    <div id="detail-${insumo._id}" class="insumo-detail-pane" style="display: none;">
+                        <p><strong>Código del item:</strong> <span>${insumo.codigo || 'N/A'}</span></p>
+                        <p><strong>Descripción:</strong> <span>${insumo.tipo || 'Sin descripción'}</span></p>
+                        <p><strong>Ubicación actual:</strong> <span>${nombreCaja}</span></p>
+                        <p><strong>Registrado el:</strong> <span>${fechaRegistro}</span></p>
+                        ${fechasEsterilHtml}
+                        ${historialHtml}
+                    </div>
                 </div>
                 ${optionsHtml}
             `;
@@ -1390,6 +1444,23 @@ function abrirModalDetalleCaja(slug) {
     }
 
     document.getElementById('modalDetalleCaja').style.display = 'flex';
+}
+
+function toggleDetalleInsumo(btn, insumoId) {
+    const detailPane = document.getElementById(`detail-${insumoId}`);
+    if (!detailPane) return;
+    
+    const isHidden = detailPane.style.display === 'none';
+    if (isHidden) {
+        detailPane.style.display = 'flex';
+        detailPane.style.animation = 'slideDownFade 0.25s ease forwards';
+        btn.innerHTML = 'ℹ️ Menos información ▴';
+        btn.classList.add('active');
+    } else {
+        detailPane.style.display = 'none';
+        btn.innerHTML = 'ℹ️ Más información ▾';
+        btn.classList.remove('active');
+    }
 }
 
 
